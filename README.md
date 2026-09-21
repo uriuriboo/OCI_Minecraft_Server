@@ -1,0 +1,2 @@
+# OCI_Minecraft_Server
+Oracle Cloud Infractureで作成するマインクラフトサーバー
