@@ -1,0 +1,24 @@
+# mc-server の /home/ubuntu/.config/rclone/rclone.conf のサンプル
+#
+# 実体は Terraform が terraform/templates/rclone.conf.tftpl から生成し、
+# cloud-init で配置する。docs/manual/06-backup.md の `rclone config` 対話を
+# 非対話の設定ファイルに置き換えたもの。
+#
+# 疎通確認:
+#   rclone lsd r2:
+#   rclone ls r2:minecraft-backup
+
+[r2]
+type = s3
+provider = Cloudflare
+# R2 → 「R2 APIトークンの管理」 → トークン作成
+#   権限: オブジェクトの読み取りと書き込み
+#   対象: バックアップ用バケットのみに限定
+access_key_id = xxxxxxxxxxxxxxxx
+secret_access_key = yyyyyyyyyyyyyyyy
+endpoint = https://<account-id>.r2.cloudflarestorage.com
+# R2 はリージョンを持たないが、S3 互換 API の都合で auto を明示する
+region = auto
+# R2 の API トークンはバケット作成・一覧権限を持たないことがあるため、
+# rclone がバケット存在確認(HeadBucket など)を行わないようにする。
+no_check_bucket = true

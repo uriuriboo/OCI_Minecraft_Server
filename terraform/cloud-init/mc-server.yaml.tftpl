@@ -1,0 +1,131 @@
+#cloud-config
+# Terraform が terraform/cloud-init/mc-server.yaml.tftpl から生成している。
+#
+# ここは「初回構築で確定し、以後変わらないもの」だけを置く。
+# user_data の変更はインスタンス置換 (= ブートボリューム破棄 = ワールド消失) を
+# 引き起こすため、稼働後に変えたいものは Ansible 側 (site.yml の app タグ) で扱う。
+# 境界の判断基準は docs/spec/02-architecture.md を参照。
+#
+# exposure_mode = ${exposure_mode}
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose-v2
+  - iptables-persistent
+  - rclone
+  - curl
+  - netcat-openbsd
+  - unattended-upgrades
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-disable-password.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      ChallengeResponseAuthentication no
+      KbdInteractiveAuthentication no
+
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+  - path: /home/ubuntu/minecraft/docker-compose.yml
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    content: |
+      ${indent(6, trimspace(docker_compose))}
+
+  - path: /home/ubuntu/minecraft/.env
+    owner: ubuntu:ubuntu
+    permissions: '0600'
+    content: |
+      ${indent(6, trimspace(mc_env))}
+
+  - path: /home/ubuntu/minecraft/backup.sh
+    owner: ubuntu:ubuntu
+    permissions: '0750'
+    content: |
+      ${indent(6, trimspace(backup_sh))}
+
+  - path: /home/ubuntu/.config/rclone/rclone.conf
+    owner: ubuntu:ubuntu
+    permissions: '0600'
+    content: |
+      ${indent(6, trimspace(rclone_conf))}
+%{ if exposure_mode == "playit" ~}
+
+  - path: /usr/local/bin/playit-check.sh
+    permissions: '0700'
+    content: |
+      ${indent(6, trimspace(playit_check))}
+
+  - path: /etc/cron.d/playit-check
+    permissions: '0644'
+    content: |
+      */10 * * * * root /usr/local/bin/playit-check.sh
+%{ endif ~}
+
+runcmd:
+  - systemctl restart sshd
+
+  # ---------- オーバーレイネットワーク ----------
+  # SSH は公開方式に関わらず Tailscale 経由。自宅IPの変動に影響されない。
+  # --advertise-tags は Auth Key 側にタグ権限がないと失敗するため、
+  # tailscale_authkey_server はタグ付きで発行しておく必要がある。
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey=${tailscale_authkey} --ssh --hostname=mc-server --advertise-tags=tag:mc-server
+%{ if install_zerotier ~}
+  # 参加後、my.zerotier.com で該当ノードを承認するまで IP は割り当たらない
+  - curl -s https://install.zerotier.com | bash
+  - zerotier-cli join ${zerotier_network_id}
+%{ endif ~}
+
+  - usermod -aG docker ubuntu
+
+  # ---------- ファイアウォール ----------
+%{ if exposure_mode == "playit" ~}
+  # playit 方式では 25565 をホストに出していないため、iptables で塞ぐ対象がない。
+  # RCON はコンテナの ports で ${mc_private_ip} にバインドしており、
+  # Docker の DNAT は INPUT チェーンを通らないので iptables では守れない。
+  # 監視VMからのみという制御は NSG (nsg-minecraft) が担う。
+%{ else ~}
+  # 25565 は ${exposure_mode} のインターフェース経由のみ許可し、それ以外は拒否する。
+  # ACCEPT が DROP より上位にある必要があるため -I と -A を使い分けている。
+%{ if exposure_mode == "tailscale" ~}
+  - iptables -I INPUT -i tailscale0 -p tcp --dport 25565 -j ACCEPT
+%{ else ~}
+  # ZeroTier のインターフェース名は zt で始まる可変名なので zt+ で指定する
+  - iptables -I INPUT -i zt+ -p tcp --dport 25565 -j ACCEPT
+%{ endif ~}
+  - iptables -A INPUT -p tcp --dport 25565 -j DROP
+  # RCON は VCN 内 (監視VM) からのみ。host network なので INPUT で効く。
+  - iptables -I INPUT -s ${subnet_cidr} -p tcp --dport 25575 -j ACCEPT
+  - iptables -A INPUT -p tcp --dport 25575 -j DROP
+%{ endif ~}
+  - netfilter-persistent save
+
+  # ---------- バックアップ ----------
+  - mkdir -p /home/ubuntu/minecraft/data /home/ubuntu/minecraft/backups
+%{ if enable_oci_backup ~}
+  # OCI CLI を uv の tool として入れる。インスタンスプリンシパルで認証するので
+  # config は作らない。公式の install.sh は対話が入るため使わない。
+  - curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh
+  - env UV_TOOL_DIR=/opt/uv-tools UV_TOOL_BIN_DIR=/usr/local/bin uv tool install --python /usr/bin/python3 oci-cli
+%{ endif ~}
+  - chown -R ubuntu:ubuntu /home/ubuntu/minecraft /home/ubuntu/.config
+
+  # ---------- Minecraft 起動 ----------
+%{ if exposure_mode == "playit" ~}
+  # 初回は mc と mc-router のみ。playit_secret_key が空だと playit コンテナは
+  # exit 1 を繰り返す (restart: unless-stopped でクラッシュループする)ため、
+  # ここでは起動しない。キーを設定して terraform apply → Ansible -t app した
+  # ときに `docker compose up -d` で立ち上がる (docs/spec/06-operations.md)。
+  - su - ubuntu -c 'cd /home/ubuntu/minecraft && docker compose up -d mc mc-router'
+%{ else ~}
+  - su - ubuntu -c 'cd /home/ubuntu/minecraft && docker compose up -d'
+%{ endif ~}

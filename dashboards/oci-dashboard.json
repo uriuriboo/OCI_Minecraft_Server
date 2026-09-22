@@ -1,0 +1,156 @@
+{
+  "_comment": [
+    "OCI Console Dashboards のウィジェット定義。",
+    "",
+    "これは OCI の「ダッシュボードのインポート」用バンドルではない。",
+    "OCI Management Dashboard のインポート形式は savedSearch の OCID と",
+    "テナンシー固有のスキーマバージョンに依存するため、この環境では生成しても",
+    "確実にインポートできる保証がない。そのため、コンソールで手入力する際の",
+    "定義書として持ち、MQL の生成だけをスクリプトに任せる。",
+    "",
+    "使い方:",
+    "  python scripts/print-dashboard.py",
+    "    → terraform output から OCID を取り込み、貼り付け可能な MQL を出力する",
+    "  コンソール → 監視 → ダッシュボード → ダッシュボードの作成",
+    "    → 各ウィジェットに下記の namespace / metric / MQL を入力する",
+    "",
+    "パネル構成は別リポジトリの Grafana 構成 (旧 monitor_sample/dashboards/*.json、削除済み) を",
+    "参考にしている。grafana_equivalent はその対応を示すもので、OCI 側の設定には使わない。"
+  ],
+
+  "title": "Minecraft (OCI)",
+  "defaultTimeRange": "PT6H",
+  "refreshInterval": "PT5M",
+
+  "_refreshNote": "monitor.py は5分間隔なので、それより短い更新間隔にしても新しい点は増えない。",
+
+  "widgets": [
+    {
+      "row": 1,
+      "title": "サーバー死活",
+      "type": "single-value",
+      "namespace": "custom_minecraft",
+      "metric": "ServerOnline",
+      "mql": "ServerOnline[5m]{resourceName = \"mc-server\"}.min()",
+      "valueMapping": { "0": "DOWN", "1": "UP" },
+      "note": "min() を使うのは、区間内に一度でも落ちていれば DOWN と見せたいため。",
+      "grafana_equivalent": "mc-monitor.json panel 1 (stat, minecraft_status_healthy)"
+    },
+    {
+      "row": 1,
+      "title": "プレイヤー数",
+      "type": "single-value",
+      "namespace": "custom_minecraft",
+      "metric": "PlayerCount",
+      "mql": "PlayerCount[5m]{resourceName = \"mc-server\"}.max()",
+      "range": { "min": 0, "max": 20 },
+      "note": "max は mc_max_players に合わせる。",
+      "grafana_equivalent": "mc-monitor.json panel 2 (gauge, players_online_count)"
+    },
+    {
+      "row": 1,
+      "title": "TPS",
+      "type": "single-value",
+      "namespace": "custom_minecraft",
+      "metric": "TPS",
+      "mql": "TPS[5m]{resourceName = \"mc-server\"}.mean()",
+      "thresholds": { "warning": 18.0, "critical": 15.0 },
+      "note": "20 が上限。15 未満で monitor.py がアラートを出す。",
+      "grafana_equivalent": "mc-monitor.json panel 3 (stat, response_time_seconds) の役割に相当"
+    },
+
+    {
+      "row": 2,
+      "title": "死活の推移",
+      "type": "line",
+      "namespace": "custom_minecraft",
+      "metric": "ServerOnline",
+      "mql": "ServerOnline[5m]{resourceName = \"mc-server\"}.min()",
+      "note": "OCI に state-timeline 相当はないため折れ線で代用する。0 に落ちた区間が停止時間。",
+      "grafana_equivalent": "mc-monitor.json panel 5 (state-timeline)"
+    },
+
+    {
+      "row": 3,
+      "title": "プレイヤー数の推移",
+      "type": "bar",
+      "namespace": "custom_minecraft",
+      "metric": "PlayerCount",
+      "mql": "PlayerCount[5m]{resourceName = \"mc-server\"}.max()",
+      "note": "TPS と並べると「何人を超えると TPS が落ちるか」の相関が目視できる。",
+      "grafana_equivalent": "mc-monitor.json panel 6 (timeseries)"
+    },
+    {
+      "row": 3,
+      "title": "TPS の推移",
+      "type": "line",
+      "namespace": "custom_minecraft",
+      "metric": "TPS",
+      "mql": "TPS[5m]{resourceName = \"mc-server\"}.mean()",
+      "grafana_equivalent": "mc-monitor.json panel 7 (timeseries)"
+    },
+
+    {
+      "row": 4,
+      "title": "CPU使用率 (2台比較)",
+      "type": "line",
+      "namespace": "oci_computeagent",
+      "metric": "CpuUtilization",
+      "mql": "CpuUtilization[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "mqlSecondary": "CpuUtilization[5m]{resourceId = \"__MC_MONITOR_OCID__\"}.mean()",
+      "thresholds": { "critical": 85.0 },
+      "note": "Oracle Cloud Agent が収集するため monitor.py に依存しない。",
+      "grafana_equivalent": "minecraft-overview.json panel 5 (node_load1)"
+    },
+    {
+      "row": 4,
+      "title": "メモリ使用率",
+      "type": "line",
+      "namespace": "oci_computeagent",
+      "metric": "MemoryUtilization",
+      "mql": "MemoryUtilization[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "thresholds": { "critical": 85.0 },
+      "grafana_equivalent": "minecraft-overview.json panel 6 (node_memory_MemAvailable_bytes)"
+    },
+
+    {
+      "row": 5,
+      "title": "ディスク使用率 (ワールド肥大化)",
+      "type": "line",
+      "namespace": "oci_computeagent",
+      "metric": "FilesystemUtilization",
+      "mql": "FilesystemUtilization[5m]{resourceId = \"__MC_SERVER_OCID__\", fileSystemName = \"__FILESYSTEM_NAME__\"}.mean()",
+      "thresholds": { "critical": 80.0 },
+      "note": "fileSystemName は実測値。`/` ではなく `/dev/sda1` のことがある。増加トレンドの早期発見に使う。",
+      "grafana_equivalent": "なし (Grafana 構成には含まれていない項目)"
+    },
+    {
+      "row": 5,
+      "title": "ディスクI/O",
+      "type": "line",
+      "namespace": "oci_computeagent",
+      "metric": "DiskBytesRead / DiskBytesWritten",
+      "mql": "DiskBytesRead[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "mqlSecondary": "DiskBytesWritten[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "note": "バックアップ実行時の負荷が見える。",
+      "grafana_equivalent": "なし"
+    },
+    {
+      "row": 5,
+      "title": "通信量",
+      "type": "line",
+      "namespace": "oci_computeagent",
+      "metric": "NetworksBytesIn / NetworksBytesOut",
+      "mql": "NetworksBytesIn[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "mqlSecondary": "NetworksBytesOut[5m]{resourceId = \"__MC_SERVER_OCID__\"}.mean()",
+      "note": "プレイヤーの出入りが見える。playit 方式ではトンネル経由の通信もここに出る。",
+      "grafana_equivalent": "minecraft-overview.json panel 4 (mc_router connections) の役割に相当"
+    }
+  ],
+
+  "notDisplayable": [
+    "Minecraft のゲームログ内容 → OCI Logging が別途必要",
+    "バックアップの成否履歴 → カスタムメトリクスを追加すれば可能",
+    "Tailscale / playit の接続状態 → 各サービスの管理画面で確認"
+  ]
+}

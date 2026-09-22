@@ -1,0 +1,16 @@
+# /home/ubuntu/.config/rclone/rclone.conf
+# Terraform が生成している。docs/manual/05-backup.md の `rclone config` 対話を
+# 非対話の設定ファイルに置き換えたもの。
+# 疎通確認: rclone lsd r2:
+
+[r2]
+type = s3
+provider = Cloudflare
+access_key_id = ${r2_access_key_id}
+secret_access_key = ${r2_secret_access_key}
+endpoint = ${r2_endpoint}
+# R2 はリージョンを持たないが、S3 互換 API の都合で auto を明示する
+region = auto
+# R2 の API トークンはバケット作成・一覧権限を持たないことがあるため、
+# rclone がバケット存在確認(HeadBucket など)を行わないようにする。
+no_check_bucket = true

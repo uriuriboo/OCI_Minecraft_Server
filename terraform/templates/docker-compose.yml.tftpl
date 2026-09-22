@@ -1,0 +1,162 @@
+# このファイルは Terraform が terraform/templates/docker-compose.yml.tftpl から
+# 生成している。VM 上で直接編集しても、Ansible の app タグを実行すると
+# 上書きされる。恒久的な変更は terraform.tfvars 側に入れること。
+#   変更の反映: terraform apply && ansible-playbook -i inventory.yml site.yml -t app
+#
+# exposure_mode = ${exposure_mode}
+services:
+  mc:
+    image: itzg/minecraft-server
+    container_name: mc
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    # 既定の 10 秒では PaperMC が終了しきれず SIGKILL され、ワールドが壊れることがある。
+    # backup.sh やイメージ更新で止める機会があるため明示する。
+    stop_grace_period: 1m
+    security_opt:
+      - no-new-privileges:true
+    # 上限を付けないと journald ではなく json ファイルが無制限に育ち、
+    # ディスク使用率 80% のアラート (docs/spec/04-monitoring.md) を静かに押し上げる。
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+%{ if exposure_mode == "playit" ~}
+    # 25565 はホストに出さない。mc-router が同じ bridge ネットワークから
+    # コンテナ名 mc で到達するため、公開の必要がない。
+    # RCON だけは mc-monitor から届くようプライベートIPにバインドする。
+    ports:
+      - "${mc_private_ip}:25575:25575"
+    networks:
+      - mcnet
+%{ if mc_router_auto_scale ~}
+    # mc_router_auto_scale = true のときだけ意味を持つ。mc-router は Docker API で
+    # このラベルを見てバックエンドを検出し、同じ API でコンテナを起動・停止する。
+    # false のときは mc-router 側の DEFAULT で経路が決まるのでラベルは出さない。
+    labels:
+      mc-router.default: "true"
+      mc-router.host: "mc"
+      mc-router.port: "25565"
+%{ endif ~}
+%{ else ~}
+    # 25565/25575 はホストの全インターフェースで listen し、
+    # どこからの着信を通すかは cloud-init が入れた iptables で制御する。
+    network_mode: "host"
+%{ endif ~}
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "LATEST"
+      MEMORY: "${mc_memory}"
+      USE_AIKAR_FLAGS: "true"
+      TZ: "Asia/Tokyo"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "$${RCON_PASSWORD}"
+      RCON_PORT: 25575
+      MOTD: "${mc_motd}"
+      DIFFICULTY: "${mc_difficulty}"
+      MAX_PLAYERS: ${mc_max_players}
+      VIEW_DISTANCE: ${mc_view_distance}
+      SIMULATION_DISTANCE: ${mc_simulation_distance}
+      # AUTOPAUSE は使わない。monitor.py が5分ごとに RCON を張るためアイドル判定が
+      # リセットされ続けて発火せず、仮に発火しても JVM を SIGSTOP するだけで
+      # メモリは掴んだままになる。休止させたい場合は mc_router_auto_scale を使う。
+      ENABLE_AUTOPAUSE: "false"
+      # false にすると Mojang 認証をスキップし、どんなMCID名でも接続できてしまう。
+      # なりすまし対策として明示的に true を置く。
+      ONLINE_MODE: "true"
+%{ if length(whitelist) > 0 ~}
+      # Tailscale ACL は「どのIPから来たか」しか見ないため、
+      # MCID 単位の制御はここが担う。
+      ENFORCE_WHITELIST: "true"
+      WHITELIST: "${join(",", whitelist)}"
+%{ endif ~}
+%{ if length(ops) > 0 ~}
+      OPS: "${join(",", ops)}"
+%{ endif ~}
+%{ if length(plugins) > 0 ~}
+      # SpigotMC のリソースID。IDと名前の対応は docs/spec/07-tech-stack.md
+      SPIGET_RESOURCES: "${join(",", plugins)}"
+%{ endif ~}
+    volumes:
+      - ./data:/data
+%{ if exposure_mode == "playit" ~}
+
+  # プレイヤー → playit.gg → mc-router:25565 → mc:25565
+  #
+  # playit.gg のトンネルは Local address を "mc-router:25565" に設定する
+  # ("mc:25565" ではない。docs/spec/09-verification.md)。
+  # 25565 はホストに出さない。playit が同じ bridge にいるので公開の必要がなく、
+  # Docker の DNAT を増やさずに済む。
+  mc-router:
+    image: itzg/mc-router
+    container_name: mc-router
+    restart: unless-stopped
+    environment:
+      # 既定は 1 接続/秒。playit のアドレスは知っていれば誰でも叩けるため、
+      # 接続の連打が mc 本体に素通りしないようここで絞る。
+      CONNECTION_RATE_LIMIT: "${mc_router_rate_limit}"
+%{ if mc_router_auto_scale ~}
+      # 誰かが接続したら mc を起動し、全員抜けたら停止する (scale to zero)。
+      # 停止は Docker の stop API 経由なので mc の stop_grace_period が尊重される。
+      IN_DOCKER: "true"
+      AUTO_SCALE_UP: "true"
+      AUTO_SCALE_DOWN: "true"
+      AUTO_SCALE_DOWN_AFTER: "${mc_router_scale_down_after}"
+%{ else ~}
+      # Docker API を使わない経路指定。バックエンドが mc ひとつしかないので
+      # これで足り、docker.sock を渡さずに済む。
+      DEFAULT: "mc:25565"
+%{ endif ~}
+%{ if mc_router_auto_scale ~}
+    # コンテナの起動・停止に Docker API を使う。
+    # イメージは非root (UID 65532) で動くため socket に届かず、かといって
+    # ホストの docker グループ GID は Terraform の時点で確定しない。
+    # docker.sock を渡した時点でホストの root 相当になるのは group_add でも
+    # 同じなので、GID 探しをやめて root で動かす。
+    user: "0:0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+%{ endif ~}
+    networks:
+      - mcnet
+    depends_on:
+      - mc
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    mem_limit: 64m
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:1.0
+    container_name: playit
+    restart: unless-stopped
+    # エントリポイントが読むのは SECRET_KEY だけで、空だと exit 1 で即終了する。
+    # キーは playit.gg のダッシュボードで先に払い出しておく (docs/spec/06-operations.md)。
+    # .env をまるごと渡すと RCON パスワードや Discord Webhook URL まで
+    # このコンテナに入ってしまうため、必要な1つだけを明示的に渡す。
+    environment:
+      SECRET_KEY: "$${PLAYIT_SECRET_KEY}"
+    networks:
+      - mcnet
+    depends_on:
+      - mc-router
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    mem_limit: 64m
+
+networks:
+  mcnet:
+    driver: bridge
+%{ endif ~}

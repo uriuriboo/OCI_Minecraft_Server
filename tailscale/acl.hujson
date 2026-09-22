@@ -1,0 +1,56 @@
+// Tailscale の Access Controls ポリシー。
+//
+// 反映方法:
+//   管理画面 → Access Controls (https://login.tailscale.com/admin/acls)
+//   を開き、このファイルの内容で置き換えて保存する。保存すると即座に反映される。
+//
+// 設計方針 (詳細は docs/spec/03-network-security.md):
+//   tag:mc-admin      自分の操作端末。全ノードへ全ポート + SSH
+//   tag:mc-server     Minecraft サーバー (被アクセス側)
+//   tag:mc-monitor    監視サーバー (被アクセス側)
+//   group:mc-friends  友人。mc-server の 25565 のみ。監視VMは一切見えない
+//
+// 重要な前提: Auth Key は発行時にタグを指定しておく。
+// タグなしのキーで参加した場合 --advertise-tags が効かず、
+// ここの ssh ブロックが一致しなくなって SSH できなくなる。
+{
+  "groups": {
+    // 友人を招待し、参加を承諾してもらってから、ここにメールアドレスを追記する。
+    // 空リストのまま保存して構わない。
+    "group:mc-friends": [
+      // "friend1@example.com",
+    ],
+  },
+
+  "tagOwners": {
+    "tag:mc-admin":   ["autogroup:admin"],
+    "tag:mc-server":  ["autogroup:admin"],
+    "tag:mc-monitor": ["autogroup:admin"],
+  },
+
+  "acls": [
+    // 管理者は全ノードへ。運用とトラブルシュートのため絞らない。
+    {
+      "action": "accept",
+      "src":    ["tag:mc-admin"],
+      "dst":    ["*:*"],
+    },
+    // 友人は Minecraft のポートだけ。SSH も監視VMも届かない。
+    {
+      "action": "accept",
+      "src":    ["group:mc-friends"],
+      "dst":    ["tag:mc-server:25565"],
+    },
+  ],
+
+  "ssh": [
+    // Tailscale SSH。公開方式 (playit / tailscale / zerotier) に関わらず
+    // 管理アクセスは常にここを通る。
+    {
+      "action": "accept",
+      "src":    ["tag:mc-admin"],
+      "dst":    ["tag:mc-server", "tag:mc-monitor"],
+      "users":  ["ubuntu", "autogroup:nonroot"],
+    },
+  ],
+}

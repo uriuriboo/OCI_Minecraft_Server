@@ -1,0 +1,274 @@
+{
+  // Ctrl+Shift+P → Tasks: Run Task
+  //
+  // ansible 系のタスクは WSL 経由で実行します。Ansible は Windows を
+  // コントロールノードにできないためです (ansible/README.md 参照)。
+  "version": "2.0.0",
+  "presentation": {
+    "echo": true,
+    "reveal": "always",
+    "panel": "dedicated",
+    "clear": true
+  },
+  "tasks": [
+    // ---------- 検証 (クラウド不要) ----------
+    {
+      "label": "check: すべて",
+      "detail": "整形・構文・整合性・wiki同期をまとめて検証する",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "tf: fmt -check",
+        "tf: validate",
+        "check: 整合性",
+        "check: wiki の同期",
+        "check: monitor.py の構文"
+      ],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "check: 整合性",
+      "detail": "env 変数・tfvars サンプル・.gitignore・改行コードの食い違いを検査する",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "scripts/check-consistency.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "check: wiki の同期",
+      "detail": "docs/spec/ と docs/wiki/ に差分がないか確認する (差分があれば失敗)",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "scripts/sync-wiki.py", "--check"],
+      "problemMatcher": []
+    },
+    {
+      "label": "check: monitor.py の構文",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "python", "-m", "py_compile", "monitor/monitor.py"],
+      "problemMatcher": []
+    },
+
+    // ---------- Terraform ----------
+    {
+      "label": "tf: tenv install",
+      "detail": ".terraform-version に固定した版をインストールする",
+      "type": "shell",
+      "command": "tenv",
+      "args": ["tf", "install"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: init",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["init"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: fmt -check",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["fmt", "-check", "-recursive", "-diff"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: fmt (書き換え)",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["fmt", "-recursive"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: validate",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["validate"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: plan",
+      "detail": "must be replaced が出ていないか必ず確認すること",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["plan"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: apply",
+      "detail": "インフラと ansible/files/ を更新する",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["apply"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: apply (ad_index を選ぶ)",
+      "detail": "Arm 枠が Out of Capacity のときに AD を変えて再試行する",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["apply", "-var=ad_index=${input:adIndex}"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+    {
+      "label": "tf: output",
+      "type": "shell",
+      "command": "terraform",
+      "args": ["output"],
+      "options": { "cwd": "${workspaceFolder}/terraform" },
+      "problemMatcher": []
+    },
+
+    // ---------- Ansible (WSL 経由) ----------
+    {
+      "label": "ansible: app --check",
+      "detail": "docker-compose.yml / .env の差分を確認する (適用しない)",
+      "type": "shell",
+      "command": "wsl",
+      "args": ["-e", "bash", "-lc", "cd ansible && ansible-playbook site.yml -t app --check --diff"],
+      "problemMatcher": []
+    },
+    {
+      "label": "ansible: app",
+      "detail": "docker-compose.yml / .env を配送して反映する",
+      "type": "shell",
+      "command": "wsl",
+      "args": ["-e", "bash", "-lc", "cd ansible && ansible-playbook site.yml -t app"],
+      "problemMatcher": []
+    },
+    {
+      "label": "ansible: monitor",
+      "detail": "monitor.py / .env / systemd unit を配送して反映する",
+      "type": "shell",
+      "command": "wsl",
+      "args": ["-e", "bash", "-lc", "cd ansible && ansible-playbook site.yml -t monitor"],
+      "problemMatcher": []
+    },
+    {
+      "label": "ansible: syntax-check",
+      "type": "shell",
+      "command": "wsl",
+      "args": ["-e", "bash", "-lc", "cd ansible && ansible-playbook -i inventory_sample.yml site.yml --syntax-check"],
+      "problemMatcher": []
+    },
+
+    // ---------- 運用 ----------
+    {
+      "label": "ssh: mc-server",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-server"],
+      "problemMatcher": []
+    },
+    {
+      "label": "ssh: mc-monitor",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-monitor"],
+      "problemMatcher": []
+    },
+    {
+      "label": "mc: ログを見る",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-server", "cd ~/minecraft && docker compose logs -f --tail=100"],
+      "problemMatcher": []
+    },
+    {
+      "label": "mc: コンテナの状態",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-server", "cd ~/minecraft && docker compose ps"],
+      "problemMatcher": []
+    },
+    {
+      "label": "mc: バックアップを実行",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-server", "~/minecraft/backup.sh"],
+      "problemMatcher": []
+    },
+    {
+      "label": "monitor: 単発実行",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-monitor", "sudo systemctl start mc-monitor.service && journalctl -u mc-monitor.service -n 30 --no-pager"],
+      "problemMatcher": []
+    },
+    {
+      "label": "monitor: ログを見る",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-monitor", "journalctl -u mc-monitor.service -f"],
+      "problemMatcher": []
+    },
+    {
+      "label": "monitor: 次回実行時刻",
+      "type": "shell",
+      "command": "ssh",
+      "args": ["ubuntu@mc-monitor", "systemctl list-timers mc-monitor.timer --no-pager"],
+      "problemMatcher": []
+    },
+    {
+      "label": "monitor: Ansible なしで配送",
+      "detail": "WSL を用意していない場合のフォールバック",
+      "type": "shell",
+      "command": "wsl",
+      "args": ["-e", "bash", "-lc", "./scripts/deploy-monitor.sh"],
+      "problemMatcher": []
+    },
+
+    // ---------- 生成 ----------
+    {
+      "label": "gen: wiki",
+      "detail": "docs/spec/ から docs/wiki/ のページを生成する",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "scripts/sync-wiki.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "gen: ダッシュボードの MQL",
+      "detail": "コンソールに貼り付ける MQL を OCID 入りで出力する",
+      "type": "shell",
+      "command": "uv",
+      "args": ["run", "scripts/print-dashboard.py"],
+      "problemMatcher": []
+    },
+    {
+      "label": "gen: requirements.txt",
+      "detail": "pyproject.toml から monitor/requirements.txt を再生成する (依存を変えたら実行)",
+      // --python-version と --python-platform は mc-monitor (Ubuntu 24.04 / x86_64) に
+      // 合わせている。手元の Python で解決すると別のバージョンが選ばれてしまう。
+      "type": "shell",
+      "command": "uv",
+      "args": [
+        "pip", "compile", "pyproject.toml",
+        "--group", "monitor",
+        "--python-version", "3.12",
+        "--python-platform", "x86_64-unknown-linux-gnu",
+        "-o", "monitor/requirements.txt"
+      ],
+      "problemMatcher": []
+    }
+  ],
+
+  "inputs": [
+    {
+      "id": "adIndex",
+      "type": "pickString",
+      "description": "Availability Domain のインデックス",
+      "options": ["0", "1", "2"],
+      "default": "1"
+    }
+  ]
+}
