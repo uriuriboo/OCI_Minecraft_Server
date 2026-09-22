@@ -1,0 +1,161 @@
+# terraform.tfvars のサンプル。
+#
+#   cp terraform.tfvars_sample terraform.tfvars
+#
+# terraform.tfvars は .gitignore 済み。値の入手元は docs/spec/08-parameters.md、
+# 取得手順は docs/manual/01-prerequisites.md にある。
+
+# ============================================================
+# 必須: OCI テナンシー
+# ============================================================
+
+# コンソール → プロフィール → テナンシー
+tenancy_ocid = "ocid1.tenancy.oc1..xxxxx"
+
+# oci iam compartment list --all --query "data[].{name:name,id:id}" --output table
+# ルートコンパートメントを使う場合は tenancy_ocid と同じ値
+compartment_ocid = "ocid1.compartment.oc1..xxxxx"
+
+region = "ap-tokyo-1"
+
+# Arm 枠が Out of Capacity の場合に 1, 2 を試す
+ad_index = 0
+
+# ============================================================
+# 必須: SSH (初回構築のフォールバック)
+# ============================================================
+
+# cat ~/.ssh/oci_mc.pub
+ssh_public_key = "ssh-ed25519 AAAA... oci-minecraft"
+
+# Tailscale 疎通を確認したら false にして再 apply し、外部公開ポートをゼロにする
+enable_home_ssh = true
+
+# curl -s https://ifconfig.me
+# enable_home_ssh = true のときは必須
+home_ip_cidr = "203.0.113.5/32"
+
+# ============================================================
+# 必須: Tailscale
+# ============================================================
+
+# 管理画面 → Settings → Keys → Generate auth key
+# それぞれ Tags に tag:mc-server / tag:mc-monitor を指定して発行する。
+# タグなしのキーで参加すると ACL の SSH ポリシーが効かない。
+tailscale_authkey_server  = "tskey-auth-xxxxx"
+tailscale_authkey_monitor = "tskey-auth-yyyyy"
+
+# ============================================================
+# 必須: Minecraft / 監視 / バックアップの秘密
+# ============================================================
+
+# openssl rand -base64 24
+rcon_password = "generated-rcon-password"
+
+# Discord → チャンネル編集 → 連携サービス → ウェブフック
+discord_webhook_url = "https://discord.com/api/webhooks/xxxx/yyyy"
+
+# R2 → R2 APIトークンの管理 → トークン作成 (オブジェクトの読み取りと書き込み)
+r2_access_key_id     = "xxxxxxxxxxxxxxxx"
+r2_secret_access_key = "yyyyyyyyyyyyyyyy"
+r2_endpoint          = "https://<account-id>.r2.cloudflarestorage.com"
+r2_bucket            = "minecraft-backup"
+
+# ============================================================
+# 公開方式
+# ============================================================
+
+# playit    : playit.gg のトンネル経由。友人側の準備が不要
+# tailscale : tailnet 内のみ。身内の少人数向け
+# zerotier  : ZeroTier ネットワーク内のみ。友人にアカウント作成をさせたくない場合
+exposure_mode = "playit"
+
+# 空だと playit コンテナが exit 1 で即終了する。
+# playit.gg の docker 向けセットアップウィザードで先にキーを発行してから記入し、
+# terraform apply && ansible-playbook ... -t app で配送する
+# https://playit.gg/account/setup/wizard/new-account/docker/docker-name
+playit_secret_key = ""
+
+# Tailscale と併設して予備経路にする場合は true
+enable_zerotier     = false
+zerotier_network_id = ""
+
+# ============================================================
+# Minecraft サーバー設定
+# ============================================================
+
+mc_memory              = "8G"
+mc_motd                = "OCI Minecraft Server"
+mc_difficulty          = "normal"
+mc_max_players         = 20
+mc_view_distance       = 8
+mc_simulation_distance = 6
+
+# 空リストだとホワイトリストが無効になる。
+# Tailscale ACL は IP しか見ないため、MCID 単位の制御はここが担う。
+mc_whitelist = [
+  # "friend1_mcid",
+  # "friend2_mcid",
+]
+
+mc_ops = [
+  # "admin_mcid",
+]
+
+# SpigotMC のリソースID。8631=CoreProtect, 28140=LuckPerms
+mc_plugins = ["8631", "28140"]
+
+# ============================================================
+# mc-router (exposure_mode = "playit" のときのみ)
+# ============================================================
+
+# 1秒あたりの接続数の上限。小さすぎると正当な再接続が弾かれる
+mc_router_rate_limit = 5
+
+# 無人時に mc コンテナを停止する (scale to zero)。
+# 有効にすると mc-router に docker.sock を渡すことになり、停止中は
+# monitor.py が DOWN と誤報し backup.sh も実行できなくなる。
+# Always Free では止めても課金が減らないため既定は false。
+# mc_router_auto_scale = false
+# mc_router_scale_down_after = "30m"
+
+# ============================================================
+# 監視
+# ============================================================
+
+# docs/manual/03-post-setup.md 手順8 で確認した実測値に直す。
+# `/` ではなく `/dev/sda1` のようなデバイス名のことがある。
+filesystem_name = "/"
+
+monitor_thresholds = {
+  cpu    = 85.0
+  memory = 85.0
+  disk   = 80.0
+  tps    = 15.0
+}
+
+# filesystem_name が未確定のうちは false にして誤検知を避けてもよい
+enable_monitor_timer = true
+
+# ============================================================
+# バックアップ
+# ============================================================
+
+# R2 とは別に OCI Object Storage にも置く
+enable_oci_backup  = true
+backup_bucket_name = "minecraft-backup"
+
+# VM 上に残す世代数
+backup_keep_generations = 7
+
+# クラウド側の保持日数。0 で無期限
+backup_remote_keep_days = 30
+
+# ============================================================
+# ネットワーク (通常は変更不要)
+# ============================================================
+
+# vcn_cidr           = "10.0.0.0/16"
+# subnet_cidr        = "10.0.1.0/24"
+# mc_private_ip      = "10.0.1.10"
+# monitor_private_ip = "10.0.1.20"
