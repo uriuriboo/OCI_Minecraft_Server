@@ -1,0 +1,36 @@
+[project]
+name = "minecraft-oci"
+version = "0.1.0"
+description = "OCI Always Free 枠で Minecraft サーバーを運用する構成"
+requires-python = ">=3.11"
+
+# scripts/ の補助スクリプトは標準ライブラリだけで動くため、
+# ここに実行時依存は置かない。
+dependencies = []
+
+[dependency-groups]
+# mc-monitor 上で monitor.py が使う依存。
+# ここを直したら requirements.txt を再生成すること:
+#   uv pip compile pyproject.toml --group monitor --python-version 3.12 --python-platform x86_64-unknown-linux-gnu -o monitor/requirements.txt
+#
+# VM 側が pyproject.toml ではなく requirements.txt を読むのは、
+# リポジトリ全体を VM に持ち込まずに1ファイルだけ配送すれば済むようにするため。
+monitor = [
+    "oci>=2.126,<3",
+    "requests>=2.32,<3",
+    "mcrcon>=0.7,<1",
+    "python-dotenv>=1,<2",
+]
+
+# 手元の検査用。VM には配らないので requirements.txt には入らない。
+# scripts/check-rendered.py が cloud-init を構造まで検査するために使う
+# (無くても行ベースの検査に落ちて動く)。
+dev = [
+    "pyyaml>=6",
+]
+
+[tool.uv]
+# 補助スクリプトはパッケージではないのでビルドしない
+package = false
+# uv run で dev グループを自動で入れる
+default-groups = ["dev"]

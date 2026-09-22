@@ -1,0 +1,19 @@
+# cp inventory_sample.yml inventory.yml
+#
+# ホスト名は Tailscale の MagicDNS 名。事前に
+#   ssh ubuntu@mc-server
+#   ssh ubuntu@mc-monitor
+# が通ることを確認しておく (docs/manual/03-post-setup.md 手順2)。
+#
+# MagicDNS を使っていない場合は `tailscale ip -4` で確認した
+# 100.x.x.x を ansible_host に書く。
+all:
+  children:
+    minecraft:
+      hosts:
+        mc-server:
+          # ansible_host: 100.x.x.x
+    monitor:
+      hosts:
+        mc-monitor:
+          # ansible_host: 100.x.x.y

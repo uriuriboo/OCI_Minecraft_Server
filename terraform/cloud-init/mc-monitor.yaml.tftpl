@@ -1,0 +1,94 @@
+#cloud-config
+# Terraform が terraform/cloud-init/mc-monitor.yaml.tftpl から生成している。
+#
+# monitor.py / .env / systemd unit をここで配置してしまうため、
+# terraform apply だけで監視が動き出す。ただし FILESYSTEM_NAME と TPS の
+# 出力形式は実機でしか確認できないので、確認後の差し替えは
+# Ansible (site.yml の monitor タグ) で行う。
+package_update: true
+package_upgrade: true
+
+packages:
+  # Python 環境は uv が作るため python3-pip / python3-venv は入れない。
+  # uv は venv の作成を自前で行うので ensurepip も不要。
+  - curl
+  - netcat-openbsd
+  - unattended-upgrades
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-disable-password.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      ChallengeResponseAuthentication no
+      KbdInteractiveAuthentication no
+
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+  - path: /home/ubuntu/.env
+    owner: ubuntu:ubuntu
+    permissions: '0600'
+    content: |
+      ${indent(6, trimspace(monitor_env))}
+
+  - path: /home/ubuntu/monitor.py
+    owner: ubuntu:ubuntu
+    permissions: '0755'
+    content: |
+      ${indent(6, trimspace(monitor_py))}
+
+  - path: /home/ubuntu/requirements.txt
+    owner: ubuntu:ubuntu
+    permissions: '0644'
+    content: |
+      ${indent(6, trimspace(requirements_txt))}
+
+  - path: /etc/systemd/system/mc-monitor.service
+    permissions: '0644'
+    content: |
+      ${indent(6, trimspace(monitor_service))}
+
+  - path: /etc/systemd/system/mc-monitor.timer
+    permissions: '0644'
+    content: |
+      ${indent(6, trimspace(monitor_timer))}
+
+runcmd:
+  - systemctl restart sshd
+
+  # ---------- オーバーレイネットワーク ----------
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey=${tailscale_authkey} --ssh --hostname=mc-monitor --advertise-tags=tag:mc-monitor
+%{ if install_zerotier ~}
+  - curl -s https://install.zerotier.com | bash
+  - zerotier-cli join ${zerotier_network_id}
+%{ endif ~}
+
+  # ---------- Python 環境 (uv) ----------
+  # uv で管理する。1/8 OCPU の Micro VM では pip の解決が遅く、
+  # cloud-init のタイムアウトに近づくため。
+  # UV_INSTALL_DIR を指定しないと root の ~/.local/bin に入り ubuntu から見えない。
+  - curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh
+  # uv は venv 作成を自前で行うので python3-venv (ensurepip) を必要としない。
+  # --python を明示しているのは、managed Python のダウンロードを避けるため。
+  - su - ubuntu -c 'uv venv --python /usr/bin/python3 /home/ubuntu/venv'
+  # sync は requirements.txt と完全に一致させる (余分なパッケージを残さない)。
+  # requirements.txt は uv pip compile で生成した全依存のピン留め。
+  - su - ubuntu -c 'uv pip sync --python /home/ubuntu/venv/bin/python /home/ubuntu/requirements.txt'
+
+  # ---------- 監視タイマー ----------
+  - systemctl daemon-reload
+%{ if enable_monitor_timer ~}
+  # OnBootSec=5min のため、初回実行は起動から5分後。
+  # Cloud Agent のメトリクス反映待ち (5〜10分) とも重なる。
+  - systemctl enable --now mc-monitor.timer
+%{ else ~}
+  # enable_monitor_timer=false。FILESYSTEM_NAME を実測値に直してから
+  # `sudo systemctl enable --now mc-monitor.timer` で有効化する。
+  - systemctl enable mc-monitor.timer
+%{ endif ~}

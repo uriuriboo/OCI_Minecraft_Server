@@ -1,0 +1,192 @@
+# 稼働中の VM を作り直さずに更新するためのプレイブック。
+#
+# ここは構成管理の主体ではない。初回構築は Terraform + cloud-init で完結しており、
+# terraform apply だけでサーバーは動く。このプレイブックが担うのは
+# 「VM を再作成せずに差し替えたいもの」だけ。
+#
+#   -t app      docker-compose.yml と .env  (playit キー / ホワイトリスト / プラグイン)
+#   -t monitor  monitor.py と .env          (FILESYSTEM_NAME / 閾値 / ロジック修正)
+#
+# 配送するファイルは Terraform が render.tf で ansible/files/ に書き出している。
+# ここに Jinja2 テンプレートを置かないのは、同じ docker-compose.yml を
+# 2箇所で管理しないため (docs/spec/02-architecture.md)。
+#
+#   cd terraform && terraform apply        # ansible/files/ を更新
+#   cd ../ansible && ansible-playbook site.yml -t app
+---
+- name: Minecraft アプリ層の更新
+  hosts: minecraft
+  gather_facts: false
+  tags: [app]
+
+  tasks:
+    - name: ansible/files/ が生成されているか確認
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/files/docker-compose.yml"
+      register: rendered
+      delegate_to: localhost
+
+    - name: 生成されていなければ止める
+      ansible.builtin.fail:
+        msg: >-
+          ansible/files/docker-compose.yml がありません。
+          先に `cd terraform && terraform apply` を実行してください。
+      when: not rendered.stat.exists
+
+    - name: docker-compose.yml を配置
+      ansible.builtin.copy:
+        src: files/docker-compose.yml
+        dest: /home/ubuntu/minecraft/docker-compose.yml
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+      register: compose
+
+    - name: .env を配置
+      ansible.builtin.copy:
+        src: files/mc-server.env
+        dest: /home/ubuntu/minecraft/.env
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+      register: envfile
+      no_log: true
+
+    # up -d は差分のあるコンテナだけ作り直す。設定が変わっていなければ何もしない。
+    # become を使わないのは、接続ユーザーが既に ubuntu で docker グループに
+    # 入っており、非特権ユーザーへの become は一時ファイルの権限で躓きやすいため。
+    - name: 変更があれば compose を適用
+      ansible.builtin.command:
+        cmd: docker compose up -d
+        chdir: /home/ubuntu/minecraft
+      when: compose.changed or envfile.changed
+      changed_when: true
+
+    - name: コンテナの状態を確認
+      ansible.builtin.command:
+        cmd: docker compose ps
+        chdir: /home/ubuntu/minecraft
+      changed_when: false
+      register: ps
+
+    - name: コンテナの状態を表示
+      ansible.builtin.debug:
+        var: ps.stdout_lines
+
+- name: 監視の更新
+  hosts: monitor
+  gather_facts: false
+  tags: [monitor]
+
+  tasks:
+    - name: ansible/files/ が生成されているか確認
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/files/mc-monitor.env"
+      register: rendered
+      delegate_to: localhost
+
+    - name: 生成されていなければ止める
+      ansible.builtin.fail:
+        msg: >-
+          ansible/files/mc-monitor.env がありません。
+          先に `cd terraform && terraform apply` を実行してください。
+      when: not rendered.stat.exists
+
+    # monitor/ 配下が唯一の正。Terraform も同じファイルを読んでいる。
+    - name: monitor.py を配置
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../monitor/monitor.py"
+        dest: /home/ubuntu/monitor.py
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      register: script
+
+    - name: .env を配置
+      ansible.builtin.copy:
+        src: files/mc-monitor.env
+        dest: /home/ubuntu/.env
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+      register: envfile
+      no_log: true
+
+    - name: systemd unit を配置
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../monitor/systemd/{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      loop:
+        - mc-monitor.service
+        - mc-monitor.timer
+      register: units
+
+    - name: requirements.txt を配置
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../monitor/requirements.txt"
+        dest: /home/ubuntu/requirements.txt
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+      register: reqs
+
+    # uv pip sync は requirements.txt と完全に一致させる。
+    # ansible.builtin.pip モジュールを使わないのは、VM 側に pip を入れて
+    # おらず (uv で管理しているため)、モジュールが pip の存在を前提とするから。
+    - name: 依存を同期
+      ansible.builtin.command:
+        cmd: uv pip sync --python /home/ubuntu/venv/bin/python /home/ubuntu/requirements.txt
+      when: reqs.changed
+      changed_when: true
+
+    - name: daemon-reload
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+      become: true
+      when: units.changed
+
+    # unit を変えたらタイマーを張り直す。daemon-reload だけでは
+    # 古い設定のまま動き続ける。
+    - name: タイマーを有効化 / 再起動
+      ansible.builtin.systemd_service:
+        name: mc-monitor.timer
+        enabled: true
+        state: "{{ 'restarted' if units.changed else 'started' }}"
+      become: true
+
+    # 配送したものが実際に動くかをその場で確かめる。
+    # 閾値を超えていれば Discord にも飛ぶ。
+    - name: 単発実行して疎通を確認
+      ansible.builtin.systemd_service:
+        name: mc-monitor.service
+        state: restarted
+      become: true
+      when: script.changed or envfile.changed
+
+    - name: 直近の実行ログ
+      ansible.builtin.command:
+        cmd: journalctl -u mc-monitor.service -n 20 --no-pager
+      become: true
+      changed_when: false
+      register: jlog
+      when: script.changed or envfile.changed
+
+    - name: 実行ログを表示
+      ansible.builtin.debug:
+        var: jlog.stdout_lines
+      when: jlog.stdout_lines is defined
+
+    - name: 次回実行時刻
+      ansible.builtin.command:
+        cmd: systemctl list-timers mc-monitor.timer --no-pager
+      become: true
+      changed_when: false
+      register: timers
+
+    - name: 次回実行時刻を表示
+      ansible.builtin.debug:
+        var: timers.stdout_lines
