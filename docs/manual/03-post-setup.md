@@ -1,7 +1,5 @@
 # 03. 構築後の手動作業
 
-保存先: `docs/03-post-setup.md`
-
 ## 1. cloud-init 完了待ち
 
 ```bash
