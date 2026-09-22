@@ -42,6 +42,11 @@ output "minecraft_connect_address" {
   )
 }
 
+output "game_log_search_hint" {
+  description = "OCI Console でゲームログ(join/leave等)を検索する場所"
+  value       = var.enable_game_log_collection ? "Logging → Log Groups → minecraft → minecraft_game" : null
+}
+
 # dashboards/minecraft-dashboard.json の OCID プレースホルダをこの値で置換する。
 # 置換手順は docs/manual/04-dashboard.md と docs/spec/04-monitoring.md にある。
 output "dashboard_mql" {

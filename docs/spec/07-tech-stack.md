@@ -14,6 +14,7 @@
 | OCI Console Dashboards | 可視化 | 無料 |
 | OCI Object Storage | バックアップの二次コピー | 20GB まで無料 |
 | OCI IAM (動的グループ / ポリシー) | インスタンスプリンシパル | 無料 |
+| OCI Logging + Unified Monitoring Agent | ゲームログ(join/leave等)の収集(`enable_game_log_collection`、既定は無効) | 10GB / 月 |
 | Cloudflare R2 | バックアップの一次コピー | 10GB / 月100万リクエスト |
 
 ### 使っていない OCI サービス
@@ -23,7 +24,6 @@
 | サービス | 採用しない理由 | 導入を検討する条件 |
 | --- | --- | --- |
 | OCI Resource Manager | 単独運用なら state はローカルで足りる | 複数人で管理するようになったら |
-| OCI Logging | ゲームログの検索が現状不要 | 荒らしの調査が必要になったら |
 | OCI Vault | tfvars で足りている | 秘密を管理端末から出したくなったら |
 | OCI Bastion | Tailscale SSH で足りている。シリアルコンソールも残っている | - |
 | OCI Certificates | HTTPS を終端する要素がない | Web UI を公開するようになったら |

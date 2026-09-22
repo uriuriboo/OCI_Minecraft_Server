@@ -92,7 +92,7 @@ OCI Notifications に Discord 連携がなく、間に OCI Functions を挟む�
 | `mc-monitor` exporter | 作らない | `monitor.py` が RCON で TPS・人数・死活を取り `custom_minecraft` に記録する ([04. 監視](Spec-04-monitoring)) |
 | `node-exporter` | 作らない | Oracle Cloud Agent が CPU / メモリ / ディスク / NW を追加実装なしで収集する |
 | `victoriametrics` | 作らない | OCI Monitoring が保管とクエリを担う |
-| `loki` / `promtail` | 作らない | ゲームログの集約は対象外。必要になったら OCI Logging を使う ([07. 構成技術・バージョン](Spec-07-tech-stack)) |
+| `loki` / `promtail` | 作らない | 代わりに OCI Logging + Unified Monitoring Agent を使う (`enable_game_log_collection`、既定は無効。[04. 監視](Spec-04-monitoring)) |
 | `grafana` (別PC側) | 作らない | 可視化は OCI Console Dashboards |
 
 セルフホスト側の設定のうち、コンテナ本体ではない運用品質の部分 (`stop_grace_period`、ログローテーションの上限、`no-new-privileges`) は取り込んでいる。

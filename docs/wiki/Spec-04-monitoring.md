@@ -64,10 +64,21 @@
 
 | 項目 | 理由 / 代替 |
 | --- | --- |
-| Minecraft のゲームログ内容 | OCI Logging が別途必要。運用して必要になったら導入 |
 | バックアップの成否履歴 | カスタムメトリクスを追加すれば可能。現状は実行時の標準出力で確認 |
 | Tailscale / playit の接続状態 | 各サービスの管理画面。playit と mc-router の死活は playit-check.sh が見る |
-| プレイヤーごとの詳細 | RCON の `list` で人数のみ取得 |
+| プレイヤーごとの詳細 | RCON の `list` で人数のみ取得(join/leave 等のログ内容は下記参照) |
+
+### ゲームログ (join/leave 等) の収集
+
+既定では無効。`enable_game_log_collection = true` にすると OCI Logging + Unified Monitoring Agent が有効になり、`data/logs/latest.log` を tail してコンソールから検索できるようになる (`terraform/logging.tf`)。
+
+```text
+mc-server の data/logs/latest.log
+   ▼ (Unified Monitoring Agent, Custom Logs Monitoring プラグイン)
+OCI Logging: ロググループ minecraft → ログ minecraft_game (保持30日)
+```
+
+有効化に必要な IAM は `dg-mc-server-logging` / `policy-mc-server-logging` (`use log-content`)。`agent_config` は `lifecycle.ignore_changes` の対象外なので、稼働中の VM に対しても `terraform apply` だけで反映され、インスタンス置換は発生しない。確認は OCI Console → Logging → Log Groups → `minecraft` → `minecraft_game`。
 
 ### `mc_router_auto_scale` を有効にした場合の制約
 
@@ -205,6 +216,5 @@ Discord 通知は monitor.py が担っているが、OCI 標準のアラーム�
 | やりたいこと | 方法 |
 | --- | --- |
 | バックアップの成否を記録したい | `backup.sh` からカスタムメトリクスを投稿する |
-| ゲームログを検索したい | OCI Logging + Unified Monitoring Agent |
 | プレイヤー数の急増を検知したい | 閾値監視に追加できるが、友人の一斉ログインで誤検知しやすい。ホワイトリストによる一次防御の方が確実 |
 | 監視を OCI 外から行いたい | 自宅 Pi に monitor.py を移設。インスタンスプリンシパルが使えないため APIキー認証への変更が必要 |

@@ -52,3 +52,26 @@ resource "oci_identity_policy" "mc_server_backup" {
     "Allow dynamic-group ${oci_identity_dynamic_group.mc_server[0].name} to manage objects in compartment id ${var.compartment_ocid} where target.bucket.name = '${var.backup_bucket_name}'",
   ]
 }
+
+# ---------- Minecraftサーバー: ゲームログの OCI Logging への送信 ----------
+# Unified Monitoring Agent (Custom Logs Monitoring プラグイン) がこの権限で
+# ログ内容を push する。enable_oci_backup とは無関係なので別ゲートにしている。
+
+resource "oci_identity_dynamic_group" "mc_server_logging" {
+  count          = var.enable_game_log_collection ? 1 : 0
+  compartment_id = var.tenancy_ocid
+  name           = "dg-mc-server-logging"
+  description    = "Minecraft server VM for pushing game logs to OCI Logging"
+  matching_rule  = "ALL {instance.id = '${oci_core_instance.mc_server.id}'}"
+}
+
+resource "oci_identity_policy" "mc_server_logging" {
+  count          = var.enable_game_log_collection ? 1 : 0
+  compartment_id = var.tenancy_ocid
+  name           = "policy-mc-server-logging"
+  description    = "Allow Minecraft server VM to push game logs via Unified Monitoring Agent"
+
+  statements = [
+    "Allow dynamic-group ${oci_identity_dynamic_group.mc_server_logging[0].name} to use log-content in compartment id ${var.compartment_ocid}",
+  ]
+}

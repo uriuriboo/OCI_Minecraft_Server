@@ -94,6 +94,7 @@
 | `filesystem_name` | `/` | | **構築後に実測値へ修正する** (V-08) |
 | `monitor_thresholds` | cpu/memory 85, disk 80, tps 15 | | オブジェクト型 |
 | `enable_monitor_timer` | `true` | | `filesystem_name` 未確定のうちは `false` でもよい |
+| `enable_game_log_collection` | `false` | | OCI Logging + Unified Monitoring Agent でゲームログ(join/leave等)を収集する |
 
 ### バックアップ
 

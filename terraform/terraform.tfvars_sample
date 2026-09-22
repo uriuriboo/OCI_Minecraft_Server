@@ -137,6 +137,10 @@ monitor_thresholds = {
 # filesystem_name が未確定のうちは false にして誤検知を避けてもよい
 enable_monitor_timer = true
 
+# PaperMC のログ(join/leave等)を OCI Logging + Unified Monitoring Agent で
+# 収集し、コンソールから検索できるようにする。既定は無効。
+enable_game_log_collection = false
+
 # ============================================================
 # バックアップ
 # ============================================================

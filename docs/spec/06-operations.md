@@ -220,7 +220,6 @@ done
 | サーバー内部の設定管理をもっと楽にしたい | Ansible の担当範囲を広げる | cloud-init を手で直す機会が増えたら |
 | state をローカルに置きたくない | OCI Resource Manager へ移行 | 複数人で管理するようになったら |
 | 秘密を tfvars から出したい | OCI Vault | 同上 |
-| ゲームログを検索したい | OCI Logging + Unified Monitoring Agent | 荒らしの調査が必要になったら |
 | 監視を OCI 外から行いたい | 自宅 Pi に monitor.py を移設 (APIキー認証へ変更) | OCI 全体障害も検知したくなったら |
 
 **最初から抽象化を足すより、運用して不便を感じた時点で導入する方が手戻りが少ない。**

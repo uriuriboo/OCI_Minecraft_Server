@@ -73,6 +73,17 @@ resource "oci_core_instance" "mc_server" {
       name          = "Compute Instance Monitoring"
       desired_state = "ENABLED"
     }
+
+    # ゲームログ(join/leave等)を OCI Logging に送るエージェント。
+    # 収集内容は oci_logging_unified_agent_configuration (terraform/logging.tf) が
+    # OCI 側から配布するため、ここは有効化するだけでよい。
+    dynamic "plugins_config" {
+      for_each = var.enable_game_log_collection ? [1] : []
+      content {
+        name          = "Custom Logs Monitoring"
+        desired_state = "ENABLED"
+      }
+    }
   }
 
   lifecycle {

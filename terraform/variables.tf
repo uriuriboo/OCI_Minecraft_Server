@@ -330,6 +330,16 @@ variable "enable_oci_backup" {
   EOT
 }
 
+variable "enable_game_log_collection" {
+  type        = bool
+  default     = false
+  description = <<-EOT
+    OCI Logging + Unified Monitoring Agent で PaperMC のログ
+    (data/logs/latest.log)を収集し、join/leave 等を検索可能にする。
+    設計上の位置づけは docs/spec/04-monitoring.md を参照。
+  EOT
+}
+
 variable "backup_bucket_name" {
   type    = string
   default = "minecraft-backup"
