@@ -1,7 +1,5 @@
 # 03b. Tailscale ACL 設定
 
-保存先: `docs/03b-tailscale-acl.md`
-
 前提: `03-post-setup.md` の手順2(Tailscale疎通確認)まで完了していること。
 
 ## 設定方針

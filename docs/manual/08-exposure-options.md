@@ -1,7 +1,5 @@
 # 08. 公開方式の選択（playit.gg / Tailscale・ZeroTier）
 
-保存先: `docs/08-exposure-options.md`
-
 ## 前提
 
 Minecraft サーバーは**プライベート構成**です。OCI の NSG に 25565 の ingress ルールを一切作らず、VM は外部からの新規着信を受け付けません。

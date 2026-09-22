@@ -1,7 +1,5 @@
 # 01. 事前準備（手動）
 
-保存先: `docs/01-prerequisites.md`
-
 Terraform を実行する前に揃えるものです。
 
 ## 1. OCI CLI 設定

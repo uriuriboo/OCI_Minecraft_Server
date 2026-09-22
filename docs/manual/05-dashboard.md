@@ -1,7 +1,5 @@
 # 05. OCI Dashboards
 
-保存先: `docs/05-dashboard.md`
-
 ## 表示できるもの
 
 ### 標準メトリクス（追加実装なし）

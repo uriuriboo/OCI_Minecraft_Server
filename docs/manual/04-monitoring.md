@@ -1,7 +1,5 @@
 # 04. 監視・通知（monitor.py）
 
-保存先: `docs/04-monitoring.md`
-
 ## 役割
 
 ```
