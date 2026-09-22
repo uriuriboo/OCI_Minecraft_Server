@@ -39,6 +39,7 @@
 | 3-4 | [04-monitoring.md:180-193](../blob/main/docs/manual/04-monitoring.md#L180-L193)（修正済み）で、メトリクスが `None` のとき `state[key]` を書かずに `continue` していた | メトリクス取得が一時的に失敗すると状態が失われ、次回取得できた時に「初回超過」として**同じアラートが再送される** | `None` のときは前回の状態を引き継ぐよう manual と `monitor/monitor.py` の両方を修正した |
 | 3-5 | 旧 `02-terraform.md` ドラフトの `lifecycle` が `source_details[0].source_id` のみを無視していた | `metadata` の変更 (= tfvars の変更) でインスタンスが置換され、**ワールドが消える** | `terraform/compute.tf` は `ignore_changes = [metadata, source_details[0].source_id]`。詳細は [02. アーキテクチャ](Spec-02-architecture)。旧ドラフトは削除済み |
 | 3-9 | `01-prerequisites.md` の手順5が「VM 2台共通の Reusable キーを1本発行する」という手順になっていた | `terraform/variables.tf` は最初の `terraform apply` から `tailscale_authkey_server` / `tailscale_authkey_monitor` の2本のタグ付きキーを要求する。タグ付きキーの発行には ACL の `tagOwners` が先に必要で、単一の無タグキーでは `terraform.tfvars` を満たせない | 手順5を「先に ACL の `tagOwners` を登録し、mc-server用/mc-monitor用の2本を発行する」に修正し、[03b-tailscale-acl.md](../blob/main/docs/manual/03b-tailscale-acl.md) 手順3への参照を追加した |
+| 3-10 | `04-monitoring.md` に貼られていた `monitor.py` の全文コピーが `RCON_PORT` を `int(os.environ["RCON_PORT"])` で読んでいた | 実装 (`monitor/monitor.py`) は `os.environ.get("RCON_PORT", "25575")`。コピーの通りに動かすと `.env` に `RCON_PORT` がない環境で `KeyError` になる | **全文コピーを削除し、[monitor/monitor.py](../blob/main/monitor/monitor.py) への参照に置き換えた**（旧 `02-terraform.md` のコードを削除したのと同じ理由）。実装をコピーしている限り同じずれが再発する |
 | 3-8 | [08-exposure-options.md](../blob/main/docs/manual/08-exposure-options.md) の playit セットアップ手順が「`PLAYIT_SECRET_KEY` を空で `docker compose run --rm playit` を実行し、出てくる認証URLで紐付けてからキーを取得する」という流れになっていた | playit-agent の `docker/entrypoint.sh` が読むのは `SECRET_KEY` であり (`PLAYIT_SECRET_KEY` ではない)、かつ空だと認証URLを出さずに `exit 1` する。`env_file` 経由の受け渡しでも変数名の不一致で届かない | `docker-compose.yml.tftpl` の playit サービスを `environment: SECRET_KEY: "$${PLAYIT_SECRET_KEY}"` に変更 (docker compose の `.env` 変数展開経由)。manual の手順も「playit.gg の docker 向けセットアップウィザードで先にキーを発行する」に修正した |
 
 ### 3-6. 改行コード (CRLF) による破壊
@@ -105,6 +106,7 @@
 | 4-18 | 依存を `requirements.txt` に直接書く | `pyproject.toml` に宣言し `uv pip compile` で生成 | 推移的依存までピン留めされる。直接依存と固定版を同じファイルで管理すると、どちらを直すべきか分からなくなる |
 | 4-19 | OCI CLI の記述なし (4-13 で venv + pip にした) | `uv tool install oci-cli` | 同上。venv の管理が不要になり、`backup.sh` のパスも `/usr/local/bin/oci` に単純化された |
 | 4-20 | Terraform の導入方法の記述なし | tenv + `terraform/.terraform-version` | `todo.md`「terraformインストール方法をドキュメントに追加 / scoop install tenvまたはbrew install tenvから」。端末を変えても同じ版で動く |
+| 4-21 | バージョンの値を文書に書いていた（`04-monitoring.md` の `monitor.py` 全文、`08-exposure-options.md` の playit のタグ、`07-tech-stack.md` / `A2-toolchain.md` / `08-parameters.md` / `CLAUDE.md` の Terraform の版、`08-parameters.md` の変数の個数） | **値は書かず定義場所だけ書く。** 全文コピーは実装への参照に置き換えた | 1 箇所上げるたびに複数の文書を直すことになり、実際に Terraform の版 (`1.9.8` のまま) と playit のタグ (`0.15` のまま) と変数の個数 (`39` のまま) が古くなっていた。検出は `.claude/skills/doc-drift/` の検査に任せる |
 
 ## 4b. セルフホスト構成 (`docker/`) からの取り込み
 

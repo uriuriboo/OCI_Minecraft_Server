@@ -46,7 +46,7 @@ go install github.com/tofuutils/tenv/v4/cmd/tenv@latest
 ```bash
 cd terraform
 tenv tf install          # .terraform-version を読んでその版を入れる
-terraform -version       # 1.16.3 と表示される
+terraform -version       # .terraform-version と同じ版が表示される
 ```
 
 `tenv` は `terraform` コマンドを自分のシムに差し替えるため、以後は `terraform` をそのまま使える。
@@ -55,7 +55,7 @@ terraform -version       # 1.16.3 と表示される
 
 `terraform/variables.tf` で**変数をまたぐ validation** を使っている (`enable_home_ssh = true` なのに `home_ip_cidr` が空なら弾く)。これは Terraform 1.9 で入った機能である。
 
-`versions.tf` の `required_version = "~> 1.9"` がこれを担保する。`.terraform-version` を下げると apply 時にエラーになる。
+`versions.tf` の `required_version` がこれを担保する。`.terraform-version` をそれより下げると apply 時にエラーになる。
 
 ## uv
 
@@ -128,7 +128,7 @@ Windows はコントロールノードにできないため WSL2 に入れる。
 
 ```bash
 sudo apt update && sudo apt install -y ansible-core
-ansible --version          # ansible-core >= 2.16
+ansible --version          # 下限は 07. 構成技術・バージョン の表を参照
 ```
 
 WSL 側にも Tailscale が必要である。Windows 側で動いていても WSL からは別ホストとして見える。
@@ -156,7 +156,7 @@ ssh ubuntu@mc-server       # 通ることを確認
 ## 確認
 
 ```bash
-terraform -version                        # 1.16.3
+terraform -version                        # .terraform-version と一致すること
 uv --version
 git --version
 oci --version

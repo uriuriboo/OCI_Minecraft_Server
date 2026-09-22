@@ -20,7 +20,11 @@ description: このリポジトリ (OCI Minecraft IaC) で固定しているバ�
    特に OCI プロバイダのメジャー更新と Minecraft 系は**ワールド消失に繋がりうる**ので独断で進めない。
 3. **適用** — 対象ごとの手順に従う。
 4. **検証** — 「検証」節を上から順に通す。変更した領域に対応する検証を飛ばさない。
-5. **記録** — `docs/spec/07-tech-stack.md` の一覧表を実態に合わせ、`uv run scripts/sync-wiki.py` を実行する。
+5. **記録** — **バージョンの数字はドキュメントに書かない**方針なので、通常は文書の修正は要らない。
+   `docs/spec/07-tech-stack.md` が持つのは定義場所と更新手順だけ。更新経路が変わったときだけそこを直す。
+   直したら `uv run scripts/sync-wiki.py`。
+6. **確認** — `uv run .claude/skills/doc-drift/scripts/check-docs.py`。
+   文書に数字が残っていればここで出る（`docs/spec/A1-doc-reconciliation.md` の 4-21）。
 
 ## 対象ごとの手順
 
@@ -37,8 +41,8 @@ tenv tf install             # .terraform-version を読んで入れる
 cd terraform && terraform validate
 ```
 
-`docs/spec/A2-toolchain.md` に `terraform -version` の期待出力が**バージョン番号ごと**書かれている。
-ここも一緒に直さないと手順書が嘘になる。
+`docs/spec/A2-toolchain.md` の `terraform -version` の期待出力は「`.terraform-version` と一致すること」
+とだけ書いてある。**数字を書き戻さないこと。**
 
 ### Terraform プロバイダ
 

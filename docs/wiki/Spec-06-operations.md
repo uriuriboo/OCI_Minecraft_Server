@@ -130,7 +130,7 @@ Ansible は **Windows をコントロールノードとしてサポートしな�
 | mc-monitor | 既に tailnet 内。`uv tool install ansible-core` | リポジトリを持ち込む必要がある |
 | Ansible を使わない | `scripts/deploy-monitor.sh` | monitor 更新のみ。scp + systemctl の最小版 |
 
-要求バージョンは `ansible-core >= 2.16` (`ansible.builtin.systemd_service` モジュールを使うため)。手順は [A2. ツール導入](Spec-A2-toolchain)。
+`ansible.builtin.systemd_service` モジュールを使うため ansible-core に下限がある。値は [07. 構成技術・バージョン](Spec-07-tech-stack)、導入手順は [A2. ツール導入](Spec-A2-toolchain)。
 
 VM 側の Python は uv で管理しており `pip` を入れていない。そのため `site.yml` では `ansible.builtin.pip` モジュールではなく `uv pip sync` を直接呼んでいる。
 

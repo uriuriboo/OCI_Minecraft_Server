@@ -74,7 +74,7 @@ uv pip compile pyproject.toml --group monitor --python-version 3.12 --python-pla
 
 ### ツールチェーン
 
-Terraform は tenv で `terraform/.terraform-version` (1.9.8) に固定、Python は uv。導入手順は `docs/spec/A2-toolchain.md`。Terraform 1.9 以上が必須（`variables.tf` が変数をまたぐ validation を使っている）。
+Terraform は tenv で `terraform/.terraform-version` に固定、Python は uv。導入手順は `docs/spec/A2-toolchain.md`。下限は `versions.tf` の `required_version` が持つ（`variables.tf` が変数をまたぐ validation を使うため）。**バージョンの数字はドキュメントに書かない**（定義場所だけ書く。値を持つと更新のたびに複数の文書を直すことになる）。
 
 ## アーキテクチャ
 

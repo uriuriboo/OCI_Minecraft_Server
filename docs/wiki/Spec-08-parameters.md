@@ -3,7 +3,7 @@
 
 # 08. パラメータ一覧
 
-`terraform/variables.tf` で宣言している 39 個の変数と、そこから生成される `.env` の変数を列挙する。
+`terraform/variables.tf` で宣言している変数と、そこから生成される `.env` の変数を列挙する。
 
 サンプルは [terraform/terraform.tfvars_sample](../blob/main/terraform/terraform.tfvars_sample)。値の取得手順は [docs/manual/01-prerequisites.md](../blob/main/docs/manual/01-prerequisites.md) にある。
 
@@ -165,7 +165,7 @@ monitor.py はこれ以外に `STATE_FILE` と `CUSTOM_NAMESPACE` も任意で�
 
 | 値 | 場所 | 変数化していない理由 |
 | --- | --- | --- |
-| Terraform のバージョン `1.16.3` | `terraform/.terraform-version` | tenv が読む固定ファイル。変数ではない ([A2. ツール導入](Spec-A2-toolchain)) |
+| Terraform のバージョン | `terraform/.terraform-version` | tenv が読む固定ファイル。変数ではない ([A2. ツール導入](Spec-A2-toolchain)) |
 | Python 依存のバージョン | `monitor/requirements.txt` (生成物) | `pyproject.toml` から `uv pip compile` で生成する。手で編集しない |
 | RCON ポート 25575 | 複数箇所 | 変える理由がない。変えると NSG / iptables / .env の3箇所に影響する |
 | Minecraft ポート 25565 | 同上 | 同上。クライアントの既定値 |
