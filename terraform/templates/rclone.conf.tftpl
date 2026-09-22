@@ -11,6 +11,6 @@ secret_access_key = ${r2_secret_access_key}
 endpoint = ${r2_endpoint}
 # R2 はリージョンを持たないが、S3 互換 API の都合で auto を明示する
 region = auto
-# R2 は個別オブジェクトの ACL を扱わないため無効化する。
-# 付けたままだと PutObject で 501 を返すことがある。
+# R2 の API トークンはバケット作成・一覧権限を持たないことがあるため、
+# rclone がバケット存在確認(HeadBucket など)を行わないようにする。
 no_check_bucket = true

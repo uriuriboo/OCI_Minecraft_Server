@@ -19,5 +19,6 @@ secret_access_key = yyyyyyyyyyyyyyyy
 endpoint = https://<account-id>.r2.cloudflarestorage.com
 # R2 はリージョンを持たないが、S3 互換 API の都合で auto を明示する
 region = auto
-# R2 は個別オブジェクトの ACL を扱わないため無効化する
+# R2 の API トークンはバケット作成・一覧権限を持たないことがあるため、
+# rclone がバケット存在確認(HeadBucket など)を行わないようにする。
 no_check_bucket = true
