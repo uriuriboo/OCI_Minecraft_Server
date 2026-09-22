@@ -77,7 +77,8 @@ services:
       - mcnet
 
   playit:
-    image: ghcr.io/playit-cloud/playit-agent:0.15
+    # イメージとタグの正は terraform/templates/docker-compose.yml.tftpl
+    image: ghcr.io/playit-cloud/playit-agent:<tag>
     container_name: playit
     restart: unless-stopped
     env_file:

@@ -81,9 +81,10 @@ Tailscale も SSH も使えなくなった場合、OCI コンソールから入�
 
 ## 将来的な拡張候補
 
+VM を作り直さずに繰り返し変更したいもの（docker-compose.yml/.env、monitor.py と閾値）は Ansible (`ansible/site.yml`) が既に担っている。手順は [docs/spec/06-operations.md](../spec/06-operations.md) の「変更管理: どこを変えるか」を参照。cloud-init 側（iptables、パッケージ追加など）への全面移行はしない方針（[A1. 手順書との差分記録](../spec/A1-doc-reconciliation.md) 4-14）。
+
 | やりたいこと | 方法 |
 |---|---|
-| サーバー内部の設定管理を楽にしたい | Ansible を導入し cloud-init から移す |
 | state をローカルに置きたくない | OCI Resource Manager へ移行 |
 | ゲームログを検索したい | OCI Logging + Unified Monitoring Agent |
 | バックアップを自動化したい | systemd タイマーを追加（常駐は増えない） |

@@ -56,15 +56,17 @@
 
 ### 構成管理・開発
 
-| 技術 | バージョン指定 | 用途 |
+**バージョンの値はこの文書に書かない。** 下の「定義場所」を見る。数字を文書に持つと、上げるたびに複数の文書を直すことになり、必ずどこかが古くなる（実際に `CLAUDE.md` の Terraform の版と playit のタグが古くなっていた）。
+
+| 技術 | 定義場所 | 用途 |
 | --- | --- | --- |
-| tenv | 最新 | Terraform のバージョン管理 |
-| Terraform | `~> 1.9` / `.terraform-version` で `1.16.3` に固定 | インフラ + テンプレートのレンダリング |
-| oracle/oci provider | `~> 9.0` → `.terraform.lock.hcl` で固定 | OCI リソース |
-| hashicorp/local provider | `~> 2.5` → 同上 | `ansible/files/` への書き出し |
-| uv | 最新 | Python の実行と依存管理 |
-| Python | `>= 3.11` (`pyproject.toml`) | monitor.py と補助スクリプト |
-| Ansible (ansible-core) | `>= 2.16` | day-2 更新のみ |
+| tenv | 固定しない (最新) | Terraform のバージョン管理 |
+| Terraform | `terraform/.terraform-version` (固定) / `terraform/versions.tf` (下限) | インフラ + テンプレートのレンダリング |
+| oracle/oci provider | `terraform/versions.tf` → `.terraform.lock.hcl` で固定 | OCI リソース |
+| hashicorp/local provider | 同上 | `ansible/files/` への書き出し |
+| uv | 固定しない (最新) | Python の実行と依存管理 |
+| Python | `pyproject.toml` の `requires-python` | monitor.py と補助スクリプト |
+| Ansible (ansible-core) | この表 (コード側に置き場がない)。`ansible.builtin.systemd_service` を使うため 2.16 以上 | day-2 更新のみ |
 
 固定の仕組みは3層になっている。
 
@@ -91,12 +93,14 @@ Terraform 1.9 以上が必要なのは、`variables.tf` で**変数をまたぐ 
 
 直接依存は `pyproject.toml` の `[dependency-groups] monitor` に宣言する。
 
-| パッケージ | 制約 | 用途 |
-| --- | --- | --- |
-| `oci` | `>=2.126,<3` | Monitoring API |
-| `requests` | `>=2.32,<3` | Discord Webhook |
-| `mcrcon` | `>=0.7,<1` | RCON |
-| `python-dotenv` | `>=1,<2` | `.env` の読み込み |
+制約の値は `pyproject.toml` が正。ここには何のために入れているかだけを書く。
+
+| パッケージ | 用途 |
+| --- | --- |
+| `oci` | Monitoring API |
+| `requests` | Discord Webhook |
+| `mcrcon` | RCON |
+| `python-dotenv` | `.env` の読み込み |
 
 VM に配る `monitor/requirements.txt` は**そこから生成する**。推移的依存まで全てピン留めされるため、無人稼働のサーバーで予期しない破壊的変更を拾わない。
 
@@ -114,20 +118,22 @@ VM 側が `pyproject.toml` ではなく `requirements.txt` を読むのは、リ
 
 ### 固定していて明示的に上げる必要があるもの
 
-| 対象 | 現在 | 定義場所 | 確認方法 | 更新手順 |
-| --- | --- | --- | --- | --- |
-| Terraform | `1.16.3` | `terraform/.terraform-version` | [releases.hashicorp.com](https://releases.hashicorp.com/terraform/) | ファイルを書き換えて `tenv tf install` → `terraform validate` |
-| Terraform の下限 | `~> 1.9` | `terraform/versions.tf` | - | 通常は変えない (1.9 の機能に依存している) |
-| oracle/oci provider | `~> 9.0` | `terraform/versions.tf` | Terraform Registry | `terraform init -upgrade` → `terraform plan` で差分確認 → lock をコミット |
-| hashicorp/local provider | `~> 2.5` | 同上 | 同上 | 同上 |
-| tenv | 最新 | - | `tenv --version` | `scoop update tenv` / `brew upgrade tenv` |
-| uv | 最新 | - | `uv --version` | `scoop update uv` / `uv self update` |
-| ansible-core | `>= 2.16` | この表 | `ansible --version` | `apt upgrade ansible-core` (WSL2) |
-| playit-agent | **1.0** | `terraform/templates/docker-compose.yml.tftpl` | [GitHub Releases](https://github.com/playit-cloud/playit-agent/releases) | タグを上げる前に `docker/entrypoint.sh` を確認 (`SECRET_KEY` の変数名が変わる可能性がある) → タグを上げて `terraform apply` → Ansible `-t app` |
-| Python の直接依存 | `pyproject.toml` の制約 | `pyproject.toml` | PyPI | 制約を上げて `uv pip compile` → Ansible `-t monitor` |
-| Python の推移的依存 | ピン留め済み | `monitor/requirements.txt` (生成物) | - | `uv pip compile` で再生成 |
-| CoreProtect | 8631 (ID固定) | `terraform.tfvars` の `mc_plugins` | SpigotMC | ID は変わらない。SPIGET が最新版を取得する |
-| LuckPerms | 28140 (ID固定) | 同上 | 同上 | 同上 |
+**「現在の値」の列は置かない。** 定義場所のファイルを見れば分かるものを書き写すと、更新のたびにこの表も直すことになる。現在値の棚卸しは `uv run .claude/skills/version-update/scripts/survey.py` が upstream の最新と並べて出す。
+
+| 対象 | 定義場所 | 確認方法 | 更新手順 |
+| --- | --- | --- | --- |
+| Terraform | `terraform/.terraform-version` | [releases.hashicorp.com](https://releases.hashicorp.com/terraform/) | ファイルを書き換えて `tenv tf install` → `terraform validate` |
+| Terraform の下限 | `terraform/versions.tf` の `required_version` | - | 通常は変えない (変数をまたぐ validation の機能に依存している) |
+| oracle/oci provider | `terraform/versions.tf` | Terraform Registry | `terraform init -upgrade` → `terraform plan` で差分確認 → lock をコミット |
+| hashicorp/local provider | 同上 | 同上 | 同上 |
+| tenv | 固定しない | `tenv --version` | `scoop update tenv` / `brew upgrade tenv` |
+| uv | 固定しない | `uv --version` | `scoop update uv` / `uv self update` |
+| ansible-core | 上の「構成管理・開発」の表 | `ansible --version` | `apt upgrade ansible-core` (WSL2) |
+| playit-agent | `terraform/templates/docker-compose.yml.tftpl` の `image:` | [GitHub Releases](https://github.com/playit-cloud/playit-agent/releases) | タグを上げる前に `docker/entrypoint.sh` を確認 (`SECRET_KEY` の変数名が変わる可能性がある) → タグを上げて `terraform apply` → Ansible `-t app` |
+| Python の直接依存 | `pyproject.toml` の制約 | PyPI | 制約を上げて `uv pip compile` → Ansible `-t monitor` |
+| Python の推移的依存 | `monitor/requirements.txt` (生成物。手で編集しない) | - | `uv pip compile` で再生成 |
+| CoreProtect | `mc_plugins` (既定は `terraform/variables.tf`) | SpigotMC | ID は版ではない。SPIGET が実行時に最新版を取得する |
+| LuckPerms | 同上 | 同上 | 同上 |
 
 ### 自動または最新追従するもの
 
