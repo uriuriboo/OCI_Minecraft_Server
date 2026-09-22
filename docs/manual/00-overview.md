@@ -43,7 +43,7 @@
 
 | 項目 | 選択 | 理由 |
 |---|---|---|
-| Minecraft公開 | playit.gg **または** Tailscale/ZeroTier | どちらも受信ポートを開けない（`08-exposure-options.md` 参照） |
+| Minecraft公開 | playit.gg **または** Tailscale/ZeroTier | どちらも受信ポートを開けない（`07-exposure-options.md` 参照） |
 | SSH | Tailscale SSH | 公開方式に関わらず共通。自宅IPの変動に影響されない |
 | RCON | VCN内プライベートIP | Tailscaleを経由せず閉域で完結 |
 | 監視 | 別VM (mc-monitor) | サーバーごと落ちた時も検知できる |
@@ -58,12 +58,13 @@
 |---|---|
 | `00-overview.md` | この文書 |
 | `01-prerequisites.md` | 事前準備(手動) |
-| `02-terraform.md` | Terraform コード一式 |
-| `03-post-setup.md` | 構築後の手動作業 |
-| `03b-tailscale-acl.md` | Tailscale ACL 設定 |
-| `04-monitoring.md` | monitor.py と通知設定 |
-| `05-dashboard.md` | OCI Dashboards 設定 |
-| `06-backup.md` | バックアップ運用 |
-| `07-operations.md` | 運用・トラブルシュート |
-| `08-exposure-options.md` | 公開方式の選択と設定 |
-| `09-server-management.md` | 荒らし対策と権限管理 |
+| `02-post-setup.md` | 構築後の手動作業 |
+| `02b-tailscale-acl.md` | Tailscale ACL 設定 |
+| `03-monitoring.md` | monitor.py と通知設定 |
+| `04-dashboard.md` | OCI Dashboards 設定 |
+| `05-backup.md` | バックアップ運用 |
+| `06-operations.md` | 運用・トラブルシュート |
+| `07-exposure-options.md` | 公開方式の選択と設定 |
+| `08-server-management.md` | 荒らし対策と権限管理 |
+
+Terraform コード一式は手順書に持たない。正は [terraform/](../../terraform/) のコードで、設計の説明は [docs/spec/02-architecture.md](../spec/02-architecture.md)、変数の一覧は [docs/spec/08-parameters.md](../spec/08-parameters.md) にある。

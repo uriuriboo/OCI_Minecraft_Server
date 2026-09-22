@@ -1,4 +1,4 @@
-# 03. 構築後の手動作業
+# 02. 構築後の手動作業
 
 ## 1. cloud-init 完了待ち
 
@@ -65,7 +65,7 @@ tailscale ip -4
 
 Minecraft クライアントから接続します。
 
-```
+```text
 mc-server:25565
 ```
 
@@ -75,7 +75,7 @@ MagicDNS が有効ならホスト名で繋がります。
 
 管理画面 → Settings → Users → Invite external users
 
-ACL でアクセス範囲を絞ります。タグ名・グループ名を含む ACL の設定手順は [03b-tailscale-acl.md](03b-tailscale-acl.md) が正（`tag:mc-server` / `group:mc-friends` を使う）。
+ACL でアクセス範囲を絞ります。タグ名・グループ名を含む ACL の設定手順は [02b-tailscale-acl.md](02b-tailscale-acl.md) が正（`tag:mc-server` / `group:mc-friends` を使う）。
 
 友人は Minecraft ポートのみ、管理者は全ポートにアクセスできます。監視VMは友人から見えません。
 
@@ -118,7 +118,7 @@ PaperMC のバージョンで出力が変わるため、`monitor.py` の正規�
 
 ## チェックリスト
 
-```
+```text
 [ ] cloud-init 完了確認
 [ ] Tailscale 疎通確認（重要）
 [ ] Tailscale キー期限を無効化

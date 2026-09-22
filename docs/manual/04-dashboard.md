@@ -1,4 +1,4 @@
-# 05. OCI Dashboards
+# 04. OCI Dashboards
 
 ## 表示できるもの
 
@@ -50,7 +50,7 @@ mc-server と mc-monitor の両方を個別に取得できるので、比較表�
 
 各ウィジェットのメトリック・クエリ欄で指定します。
 
-```
+```text
 # CPU使用率（mc-server のみ）
 CpuUtilization[5m]{resourceId = "ocid1.instance.oc1..xxxxx"}.mean()
 
@@ -66,7 +66,7 @@ ServerOnline[5m]{resourceName = "mc-server"}.min()
 
 ## 画面イメージ
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ mc-server: CPU使用率（過去24時間）        │
 ├─────────────────────────────────────────┤
@@ -90,7 +90,7 @@ Discord 通知は monitor.py が担っていますが、OCI 標準のアラー�
 
 コンソール → 監視 → アラーム定義 → 作成
 
-```
+```text
 メトリック名前空間: oci_computeagent
 メトリック名: CpuUtilization
 統計: mean
@@ -112,7 +112,7 @@ Discord 通知は monitor.py が担っていますが、OCI 標準のアラー�
 
 ## チェックリスト
 
-```
+```text
 [ ] ダッシュボード作成
 [ ] 標準メトリクスのウィジェット配置
 [ ] カスタムメトリクスのウィジェット配置

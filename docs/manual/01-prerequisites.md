@@ -57,7 +57,7 @@ curl -s https://ifconfig.me
 
 ## 5. Tailscale Auth Key 発行
 
-`terraform.tfvars` の `tailscale_authkey_server` / `tailscale_authkey_monitor` は最初の `terraform apply` からタグ付きキーを要求する。タグ付きキーを発行するには、先に ACL の `tagOwners` にタグを登録しておく必要がある（[03b-tailscale-acl.md](03b-tailscale-acl.md) 手順3の JSON を参考に、最低限 `tagOwners` だけ先に保存しておく）。
+`terraform.tfvars` の `tailscale_authkey_server` / `tailscale_authkey_monitor` は最初の `terraform apply` からタグ付きキーを要求する。タグ付きキーを発行するには、先に ACL の `tagOwners` にタグを登録しておく必要がある（[02b-tailscale-acl.md](02b-tailscale-acl.md) 手順3の JSON を参考に、最低限 `tagOwners` だけ先に保存しておく）。
 
 管理画面 → Settings → Keys → Generate auth key で、mc-server用・mc-monitor用の**2本**を発行する。
 
@@ -95,7 +95,7 @@ R2 → 「R2 APIトークンの管理」 → トークン作成
 
 ## チェックリスト
 
-```
+```text
 [ ] OCI CLI 設定・APIキー登録
 [ ] コンパートメントOCID取得
 [ ] SSH鍵生成

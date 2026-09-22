@@ -1,6 +1,6 @@
-# 03b. Tailscale ACL 設定
+# 02b. Tailscale ACL 設定
 
-前提: `03-post-setup.md` の手順2(Tailscale疎通確認)まで完了していること。
+前提: `02-post-setup.md` の手順2(Tailscale疎通確認)まで完了していること。
 
 ## 設定方針
 
@@ -169,4 +169,4 @@ ping mc-monitor           # 届かないはず(mc-monitorへのアクセス権�
 
 ### 8. Auth Key の期限管理
 
-`03-post-setup.md` の手順3(Key expiry無効化)は、タグ付けが完了した後に実施してください。順序を逆にすると、無効化状態のノードにタグを
+`02-post-setup.md` の手順3(Key expiry無効化)は、タグ付けが完了した後に実施してください。順序を逆にすると、無効化状態のノードにタグを
