@@ -11,7 +11,7 @@ docs/spec/ を唯一の正として機械的に変換する。
 変換内容:
   docs/spec/04-monitoring.md          → docs/wiki/Spec-04-monitoring.md
   [x](02-architecture.md)             → [x](Spec-02-architecture)
-  [x](../manual/07-operations.md)     → GitHub のリポジトリ上のファイルへの絶対リンク
+  [x](../manual/06-operations.md)     → GitHub のリポジトリ上のファイルへの絶対リンク
   [x](../../terraform/variables.tf)   → 同上
 
 手書きで維持するのは docs/wiki/Home.md と docs/wiki/_Footer.md、docs/wiki/README.md のみ。
@@ -97,6 +97,7 @@ def convert(text: str, src_name: str) -> str:
 
 def build_sidebar() -> str:
     lines = [
+        "<!-- markdownlint-disable MD041 -->\n",
         "<!-- scripts/sync-wiki.py が生成しています。直接編集しないでください。 -->\n",
         "### 仕様書\n",
     ]

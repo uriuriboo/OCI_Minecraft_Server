@@ -9,24 +9,24 @@
 
 ## 1. 手順書に実体がなかったもの（解決済み）
 
-`docs/manual/02-terraform.md` の旧ドラフトには `# (既存の内容のまま)` とだけ書かれ、実体がどこにも存在しなかった箇所があった。復元根拠を示す。**現在は `02-terraform.md` 自体を実装 (`terraform/`) への短い案内に置き換え、ドラフトのコードは削除した。**
+[docs/manual/](../blob/main/docs/manual) の旧 `02-terraform.md` ドラフトには `# (既存の内容のまま)` とだけ書かれ、実体がどこにも存在しなかった箇所があった。復元根拠を示す。**ドラフトのコードは削除し、その後 `02-terraform.md` 自体も削除した（4-22）。手順書の章番号 02 が欠けているのはそのためである。**
 
 | 対象 | 復元元 | 現在の正 |
 | --- | --- | --- |
-| `docker-compose.yml` | [08-exposure-options.md](../blob/main/docs/manual/08-exposure-options.md) の方式A/B | `terraform/templates/docker-compose.yml.tftpl` |
+| `docker-compose.yml` | [07-exposure-options.md](../blob/main/docs/manual/07-exposure-options.md) の方式A/B | `terraform/templates/docker-compose.yml.tftpl` |
 | mc-monitor の `.env` | `monitor.py` が読む変数から確定 | `terraform/templates/mc-monitor.env.tftpl` |
-| `mc-monitor.service` | [04-monitoring.md:269-279](../blob/main/docs/manual/04-monitoring.md#L269-L279) の「Type=oneshot」記述 | `monitor/systemd/mc-monitor.service` |
-| `mc-monitor.timer` | [04-monitoring.md:285-289](../blob/main/docs/manual/04-monitoring.md#L285-L289) の `OnBootSec` / `OnUnitActiveSec` | `monitor/systemd/mc-monitor.timer` |
+| `mc-monitor.service` | [03-monitoring.md:269-279](../blob/main/docs/manual/03-monitoring.md#L269-L279) の「Type=oneshot」記述 | `monitor/systemd/mc-monitor.service` |
+| `mc-monitor.timer` | [03-monitoring.md:285-289](../blob/main/docs/manual/03-monitoring.md#L285-L289) の `OnBootSec` / `OnUnitActiveSec` | `monitor/systemd/mc-monitor.timer` |
 | `requirements.txt` | (旧ドラフトの `pip install` 行) | `monitor/requirements.txt` (バージョン固定を追加) |
 
 ## 2. 手順書どうしの不整合（解決済み・修正を manual に反映）
 
 | # | 内容 | 採用 | 理由 |
 | --- | --- | --- | --- |
-| 2-1 | Tailscale ACL のタグ名が2種類あった。`03-post-setup.md` は `tag:server` / `tag:friend`、[03b-tailscale-acl.md:84-118](../blob/main/docs/manual/03b-tailscale-acl.md#L84-L118) は `tag:mc-*` / `group:mc-friends` | **03b 版** | 03b が専用の章で詳細に設計されており、[08-exposure-options.md:262-303](../blob/main/docs/manual/08-exposure-options.md#L262-L303) も 03b 版を「完成形」として再掲している。cloud-init の `--advertise-tags=tag:mc-server` も 03b 側と整合する。`03-post-setup.md` 側の ACL 例は削除し、03b への参照に置き換えた |
-| 2-2 | `09-server-management.md` が「`06-backup.md の restic backup ./data`」を参照していたが、[06-backup.md:46-56](../blob/main/docs/manual/06-backup.md#L46-L56) の実装は `itzg/mc-backup` + `rclone` で restic は登場しない | **`itzg/mc-backup`** | 06 が実装の章。09 の記述は別構成からの転記と判断した。結論 (`plugins/` を含むので追加設定不要) は変わらない。09 側の記述を修正した |
-| 2-3 | [03b-tailscale-acl.md:48-58](../blob/main/docs/manual/03b-tailscale-acl.md#L48-L58) がタグ別 Auth Key への分割を要求していたが、旧 `02-terraform.md` ドラフトの `variables.tf` は単一の `tailscale_authkey` のままだった | **分割する** | 単一キーではタグを出し分けられず、ACL の `ssh` ブロックが一致しない。`terraform/variables.tf` は `tailscale_authkey_server` / `tailscale_authkey_monitor` に分けている（旧ドラフトは削除済み） |
-| 2-4 | `00-overview.md` のドキュメント構成表に `03b` と `09` が載っていなかった | **実ファイルを正** | 表が後から追加された章を反映していなかっただけ。追記した |
+| 2-1 | Tailscale ACL のタグ名が2種類あった。`02-post-setup.md` は `tag:server` / `tag:friend`、[02b-tailscale-acl.md:84-118](../blob/main/docs/manual/02b-tailscale-acl.md#L84-L118) は `tag:mc-*` / `group:mc-friends` | **02b 版** | 02b が専用の章で詳細に設計されており、[07-exposure-options.md:262-303](../blob/main/docs/manual/07-exposure-options.md#L262-L303) も 02b 版を「完成形」として再掲している。cloud-init の `--advertise-tags=tag:mc-server` も 02b 側と整合する。`02-post-setup.md` 側の ACL 例は削除し、02b への参照に置き換えた |
+| 2-2 | `08-server-management.md` が「`05-backup.md の restic backup ./data`」を参照していたが、[05-backup.md:46-56](../blob/main/docs/manual/05-backup.md#L46-L56) の実装は `itzg/mc-backup` + `rclone` で restic は登場しない | **`itzg/mc-backup`** | 05 が実装の章。08 の記述は別構成からの転記と判断した。結論 (`plugins/` を含むので追加設定不要) は変わらない。08 側の記述を修正した |
+| 2-3 | [02b-tailscale-acl.md:48-58](../blob/main/docs/manual/02b-tailscale-acl.md#L48-L58) がタグ別 Auth Key への分割を要求していたが、旧 `02-terraform.md` ドラフトの `variables.tf` は単一の `tailscale_authkey` のままだった | **分割する** | 単一キーではタグを出し分けられず、ACL の `ssh` ブロックが一致しない。`terraform/variables.tf` は `tailscale_authkey_server` / `tailscale_authkey_monitor` に分けている（旧ドラフトは削除済み） |
+| 2-4 | `00-overview.md` のドキュメント構成表に `03b`（現 `02b`）と `09`（現 `08`）が載っていなかった | **実ファイルを正** | 表が後から追加された章を反映していなかっただけ。追記した |
 | 2-5 | `00-overview.md` が「00. 構成概要（差分）」「該当箇所を置き換え」と書かれていた | **本文を正** | 差分として書かれた文書がそのまま本体になっていた。見出しと保存先の注記を修正した |
 
 ## 3. 手順書のコードにあったバグ（解決済み・manual は修正または削除で反映）
@@ -34,13 +34,13 @@
 | # | 内容 | 影響 | 修正 |
 | --- | --- | --- | --- |
 | 3-1 | 旧 `02-terraform.md` ドラフトの `data "oci_identity_tenancy" "current" { tenancy_id = var.compartment_ocid }` | コンパートメントがテナンシールートでない限り apply が失敗する。動的グループとポリシーはテナンシールートにしか作れない | `tenancy_ocid` 変数を新設し、`iam.tf` はそれを参照する（旧ドラフトは削除済み） |
-| 3-2 | 旧 `02-terraform.md` ドラフトの Monitoring プラグイン有効化が `mc_server` にしかなかった | mc-monitor のメトリクスが取れず、[05-dashboard.md:20](../blob/main/docs/manual/05-dashboard.md#L20) が言う「2台の比較表示」ができない | `terraform/compute.tf` は `mc_monitor` にも `agent_config` を付与している（旧ドラフトは削除済み） |
+| 3-2 | 旧 `02-terraform.md` ドラフトの Monitoring プラグイン有効化が `mc_server` にしかなかった | mc-monitor のメトリクスが取れず、[04-dashboard.md:20](../blob/main/docs/manual/04-dashboard.md#L20) が言う「2台の比較表示」ができない | `terraform/compute.tf` は `mc_monitor` にも `agent_config` を付与している（旧ドラフトは削除済み） |
 | 3-3 | 旧 `02-terraform.md` ドラフトの `home_ip_cidr` に既定値 `""` があり、`enable_home_ssh = true` との組み合わせを検証していなかった | 空のまま apply すると NSG ルールの `source` が不正になり、途中で失敗する | `terraform/variables.tf` に変数をまたぐ `validation` を追加 (Terraform 1.9 以降の機能)。旧ドラフトは削除済み |
-| 3-4 | [04-monitoring.md:180-193](../blob/main/docs/manual/04-monitoring.md#L180-L193)（修正済み）で、メトリクスが `None` のとき `state[key]` を書かずに `continue` していた | メトリクス取得が一時的に失敗すると状態が失われ、次回取得できた時に「初回超過」として**同じアラートが再送される** | `None` のときは前回の状態を引き継ぐよう manual と `monitor/monitor.py` の両方を修正した |
+| 3-4 | [03-monitoring.md:180-193](../blob/main/docs/manual/03-monitoring.md#L180-L193)（修正済み）で、メトリクスが `None` のとき `state[key]` を書かずに `continue` していた | メトリクス取得が一時的に失敗すると状態が失われ、次回取得できた時に「初回超過」として**同じアラートが再送される** | `None` のときは前回の状態を引き継ぐよう manual と `monitor/monitor.py` の両方を修正した |
 | 3-5 | 旧 `02-terraform.md` ドラフトの `lifecycle` が `source_details[0].source_id` のみを無視していた | `metadata` の変更 (= tfvars の変更) でインスタンスが置換され、**ワールドが消える** | `terraform/compute.tf` は `ignore_changes = [metadata, source_details[0].source_id]`。詳細は [02. アーキテクチャ](Spec-02-architecture)。旧ドラフトは削除済み |
-| 3-9 | `01-prerequisites.md` の手順5が「VM 2台共通の Reusable キーを1本発行する」という手順になっていた | `terraform/variables.tf` は最初の `terraform apply` から `tailscale_authkey_server` / `tailscale_authkey_monitor` の2本のタグ付きキーを要求する。タグ付きキーの発行には ACL の `tagOwners` が先に必要で、単一の無タグキーでは `terraform.tfvars` を満たせない | 手順5を「先に ACL の `tagOwners` を登録し、mc-server用/mc-monitor用の2本を発行する」に修正し、[03b-tailscale-acl.md](../blob/main/docs/manual/03b-tailscale-acl.md) 手順3への参照を追加した |
-| 3-10 | `04-monitoring.md` に貼られていた `monitor.py` の全文コピーが `RCON_PORT` を `int(os.environ["RCON_PORT"])` で読んでいた | 実装 (`monitor/monitor.py`) は `os.environ.get("RCON_PORT", "25575")`。コピーの通りに動かすと `.env` に `RCON_PORT` がない環境で `KeyError` になる | **全文コピーを削除し、[monitor/monitor.py](../blob/main/monitor/monitor.py) への参照に置き換えた**（旧 `02-terraform.md` のコードを削除したのと同じ理由）。実装をコピーしている限り同じずれが再発する |
-| 3-8 | [08-exposure-options.md](../blob/main/docs/manual/08-exposure-options.md) の playit セットアップ手順が「`PLAYIT_SECRET_KEY` を空で `docker compose run --rm playit` を実行し、出てくる認証URLで紐付けてからキーを取得する」という流れになっていた | playit-agent の `docker/entrypoint.sh` が読むのは `SECRET_KEY` であり (`PLAYIT_SECRET_KEY` ではない)、かつ空だと認証URLを出さずに `exit 1` する。`env_file` 経由の受け渡しでも変数名の不一致で届かない | `docker-compose.yml.tftpl` の playit サービスを `environment: SECRET_KEY: "$${PLAYIT_SECRET_KEY}"` に変更 (docker compose の `.env` 変数展開経由)。manual の手順も「playit.gg の docker 向けセットアップウィザードで先にキーを発行する」に修正した |
+| 3-9 | `01-prerequisites.md` の手順5が「VM 2台共通の Reusable キーを1本発行する」という手順になっていた | `terraform/variables.tf` は最初の `terraform apply` から `tailscale_authkey_server` / `tailscale_authkey_monitor` の2本のタグ付きキーを要求する。タグ付きキーの発行には ACL の `tagOwners` が先に必要で、単一の無タグキーでは `terraform.tfvars` を満たせない | 手順5を「先に ACL の `tagOwners` を登録し、mc-server用/mc-monitor用の2本を発行する」に修正し、[02b-tailscale-acl.md](../blob/main/docs/manual/02b-tailscale-acl.md) 手順3への参照を追加した |
+| 3-10 | `03-monitoring.md` に貼られていた `monitor.py` の全文コピーが `RCON_PORT` を `int(os.environ["RCON_PORT"])` で読んでいた | 実装 (`monitor/monitor.py`) は `os.environ.get("RCON_PORT", "25575")`。コピーの通りに動かすと `.env` に `RCON_PORT` がない環境で `KeyError` になる | **全文コピーを削除し、[monitor/monitor.py](../blob/main/monitor/monitor.py) への参照に置き換えた**（旧 `02-terraform.md` のコードを削除したのと同じ理由）。実装をコピーしている限り同じずれが再発する |
+| 3-8 | [07-exposure-options.md](../blob/main/docs/manual/07-exposure-options.md) の playit セットアップ手順が「`PLAYIT_SECRET_KEY` を空で `docker compose run --rm playit` を実行し、出てくる認証URLで紐付けてからキーを取得する」という流れになっていた | playit-agent の `docker/entrypoint.sh` が読むのは `SECRET_KEY` であり (`PLAYIT_SECRET_KEY` ではない)、かつ空だと認証URLを出さずに `exit 1` する。`env_file` 経由の受け渡しでも変数名の不一致で届かない | `docker-compose.yml.tftpl` の playit サービスを `environment: SECRET_KEY: "$${PLAYIT_SECRET_KEY}"` に変更 (docker compose の `.env` 変数展開経由)。manual の手順も「playit.gg の docker 向けセットアップウィザードで先にキーを発行する」に修正した |
 
 ### 3-6. 改行コード (CRLF) による破壊
 
@@ -86,27 +86,29 @@
 
 | # | 手順書 | 現在 | 理由 |
 | --- | --- | --- | --- |
-| 4-1 | cloud-init は方式B (Tailscale) の iptables を直書き (旧 `02-terraform.md` ドラフト、削除済み) | `exposure_mode` で3方式を切り替え | [08-exposure-options.md](../blob/main/docs/manual/08-exposure-options.md) が3方式を提示しているのに、コードが1つに固定されていた |
-| 4-2 | `monitor.py` の `FILESYSTEM_NAME` をハードコードし、実測後にコードを編集 ([04-monitoring.md:49-50](../blob/main/docs/manual/04-monitoring.md#L49-L50)) | 環境変数化し、`filesystem_name` 変数から生成 | 実測値の反映のたびに Python を編集するのは、変更経路として不適切 |
-| 4-3 | `THRESHOLDS` をコード内の定数とし、変更はコード編集 ([07-operations.md:80-82](../blob/main/docs/manual/07-operations.md#L80-L82)) | 環境変数で上書き可 (既定値は手順書と同じ) | 同上 |
-| 4-4 | `rclone config` を対話で設定 ([06-backup.md:9-30](../blob/main/docs/manual/06-backup.md#L9-L30)) | `rclone.conf` をテンプレートから生成 | 対話は再現できない。`no_check_bucket = true` も追加 (R2 で PutObject が 501 になることがある) |
-| 4-5 | バックアップは R2 のみ ([06-backup.md](../blob/main/docs/manual/06-backup.md)) | R2 + OCI Object Storage の二重化 | `todo.md`「R2だけでなく、OCIにもバックアップを作成」 |
-| 4-6 | `rclone sync` ([06-backup.md:56](../blob/main/docs/manual/06-backup.md#L56)) | `rclone copy` + `--min-age` による削除 | `sync` はローカルの世代削除をクラウドまで波及させる。手元のバグでバックアップを失う経路を切った。理由は [05. バックアップ](Spec-05-backup) |
+| 4-1 | cloud-init は方式B (Tailscale) の iptables を直書き (旧 `02-terraform.md` ドラフト、削除済み) | `exposure_mode` で3方式を切り替え | [07-exposure-options.md](../blob/main/docs/manual/07-exposure-options.md) が3方式を提示しているのに、コードが1つに固定されていた |
+| 4-2 | `monitor.py` の `FILESYSTEM_NAME` をハードコードし、実測後にコードを編集 ([03-monitoring.md:49-50](../blob/main/docs/manual/03-monitoring.md#L49-L50)) | 環境変数化し、`filesystem_name` 変数から生成 | 実測値の反映のたびに Python を編集するのは、変更経路として不適切 |
+| 4-3 | `THRESHOLDS` をコード内の定数とし、変更はコード編集 ([06-operations.md:80-82](../blob/main/docs/manual/06-operations.md#L80-L82)) | 環境変数で上書き可 (既定値は手順書と同じ) | 同上 |
+| 4-4 | `rclone config` を対話で設定 ([05-backup.md:9-30](../blob/main/docs/manual/05-backup.md#L9-L30)) | `rclone.conf` をテンプレートから生成 | 対話は再現できない。`no_check_bucket = true` も追加 (R2 で PutObject が 501 になることがある) |
+| 4-5 | バックアップは R2 のみ ([05-backup.md](../blob/main/docs/manual/05-backup.md)) | R2 + OCI Object Storage の二重化 | `todo.md`「R2だけでなく、OCIにもバックアップを作成」 |
+| 4-6 | `rclone sync` ([05-backup.md:56](../blob/main/docs/manual/05-backup.md#L56)) | `rclone copy` + `--min-age` による削除 | `sync` はローカルの世代削除をクラウドまで波及させる。手元のバグでバックアップを失う経路を切った。理由は [05. バックアップ](Spec-05-backup) |
 | 4-7 | 世代管理の記述なし | ローカル7世代 + クラウド30日 | ブートボリューム 100GB と無料枠 (R2 10GB / OCI 20GB) を超えないため |
 | 4-8 | OCI へのバックアップ手段の記述なし | インスタンスプリンシパル + バケット限定ポリシー | VM 上に OCI の鍵を置かない。侵害時の影響範囲を1バケットに限定する |
-| 4-9 | `playit-check.sh` の Webhook URL をプレースホルダで手書き ([08-exposure-options.md:157-169](../blob/main/docs/manual/08-exposure-options.md#L157-L169)) | テンプレートから生成、`crontab -l` 操作ではなく `/etc/cron.d/` に配置 | `crontab -l \| crontab -` は冪等でなく、cloud-init の再実行で重複する |
-| 4-10 | 復元は手順を手で実行 ([06-backup.md:79-95](../blob/main/docs/manual/06-backup.md#L79-L95)) | `scripts/restore.sh` | `tar -tzf` での事前検証と、`data.broken.<日時>` への退避を追加。**壊れたアーカイブで上書きしない**ため |
-| 4-11 | ZeroTier は選択肢の説明のみ ([08-exposure-options.md:321-352](../blob/main/docs/manual/08-exposure-options.md#L321-L352)) | `enable_zerotier` で Tailscale と併設可能 | `todo.md`「tailscaleを使うときはzerotierも入れること」 |
-| 4-12 | `unattended-upgrades` を手で `dpkg-reconfigure` ([07-operations.md:41-45](../blob/main/docs/manual/07-operations.md#L41-L45)) | cloud-init で `/etc/apt/apt.conf.d/20auto-upgrades` を配置 | 対話を避ける |
+| 4-9 | `playit-check.sh` の Webhook URL をプレースホルダで手書き ([07-exposure-options.md:157-169](../blob/main/docs/manual/07-exposure-options.md#L157-L169)) | テンプレートから生成、`crontab -l` 操作ではなく `/etc/cron.d/` に配置 | `crontab -l \| crontab -` は冪等でなく、cloud-init の再実行で重複する |
+| 4-10 | 復元は手順を手で実行 ([05-backup.md:79-95](../blob/main/docs/manual/05-backup.md#L79-L95)) | `scripts/restore.sh` | `tar -tzf` での事前検証と、`data.broken.<日時>` への退避を追加。**壊れたアーカイブで上書きしない**ため |
+| 4-11 | ZeroTier は選択肢の説明のみ ([07-exposure-options.md:321-352](../blob/main/docs/manual/07-exposure-options.md#L321-L352)) | `enable_zerotier` で Tailscale と併設可能 | `todo.md`「tailscaleを使うときはzerotierも入れること」 |
+| 4-12 | `unattended-upgrades` を手で `dpkg-reconfigure` ([06-operations.md:41-45](../blob/main/docs/manual/06-operations.md#L41-L45)) | cloud-init で `/etc/apt/apt.conf.d/20auto-upgrades` を配置 | 対話を避ける |
 | 4-13 | OCI CLI の記述なし | cloud-init で `/opt/oci-cli` に venv + pip | 公式 install.sh は対話が入る |
-| 4-14 | Ansible は将来の拡張候補 ([07-operations.md:88](../blob/main/docs/manual/07-operations.md#L88)) | day-2 更新のみを担う最小構成として導入 | cloud-init 単独では VM 再作成なしに更新できない。全面移行はしない |
-| 4-15 | ダッシュボードはコンソールで手作成 ([05-dashboard.md](../blob/main/docs/manual/05-dashboard.md)) | `dashboards/oci-dashboard.json` + `scripts/print-dashboard.py` | OCID の手書きを避ける。パネル構成は別リポジトリの Grafana 構成 (旧 `monitor_sample/`、削除済み) を参考にした |
+| 4-14 | Ansible は将来の拡張候補 (`06-operations.md` 旧「将来的な拡張候補」表) | day-2 更新のみを担う最小構成として導入。manual 側の記述も修正済み | cloud-init 単独では VM 再作成なしに更新できない。全面移行はしない |
+| 4-15 | ダッシュボードはコンソールで手作成 ([04-dashboard.md](../blob/main/docs/manual/04-dashboard.md)) | `dashboards/oci-dashboard.json` + `scripts/print-dashboard.py` | OCID の手書きを避ける。パネル構成は別リポジトリの Grafana 構成 (旧 `monitor_sample/`、削除済み) を参考にした |
 | 4-16 | サンプルファイルの命名は未定義 | `*_sample` (例: `terraform.tfvars_sample`) | 既存の `monitor_sample/.env_sample` (別リポジトリ、削除済み) の命名に合わせた |
 | 4-17 | mc-monitor の Python を `python3 -m venv` + `pip install` (旧 `02-terraform.md` ドラフト、削除済み) | uv (`uv venv` + `uv pip sync`) | `todo.md`「pythonはuvで管理」。1/8 OCPU の Micro VM では pip の依存解決が遅く cloud-init のタイムアウトに近づく。uv は venv 作成を自前で行うので `python3-venv` も不要になった |
 | 4-18 | 依存を `requirements.txt` に直接書く | `pyproject.toml` に宣言し `uv pip compile` で生成 | 推移的依存までピン留めされる。直接依存と固定版を同じファイルで管理すると、どちらを直すべきか分からなくなる |
 | 4-19 | OCI CLI の記述なし (4-13 で venv + pip にした) | `uv tool install oci-cli` | 同上。venv の管理が不要になり、`backup.sh` のパスも `/usr/local/bin/oci` に単純化された |
 | 4-20 | Terraform の導入方法の記述なし | tenv + `terraform/.terraform-version` | `todo.md`「terraformインストール方法をドキュメントに追加 / scoop install tenvまたはbrew install tenvから」。端末を変えても同じ版で動く |
-| 4-21 | バージョンの値を文書に書いていた（`04-monitoring.md` の `monitor.py` 全文、`08-exposure-options.md` の playit のタグ、`07-tech-stack.md` / `A2-toolchain.md` / `08-parameters.md` / `CLAUDE.md` の Terraform の版、`08-parameters.md` の変数の個数） | **値は書かず定義場所だけ書く。** 全文コピーは実装への参照に置き換えた | 1 箇所上げるたびに複数の文書を直すことになり、実際に Terraform の版 (`1.9.8` のまま) と playit のタグ (`0.15` のまま) と変数の個数 (`39` のまま) が古くなっていた。検出は `.claude/skills/doc-drift/` の検査に任せる |
+| 4-21 | バージョンの値を文書に書いていた（`03-monitoring.md` の `monitor.py` 全文、`07-exposure-options.md` の playit のタグ、`07-tech-stack.md` / `A2-toolchain.md` / `08-parameters.md` / `CLAUDE.md` の Terraform の版、`08-parameters.md` の変数の個数） | **値は書かず定義場所だけ書く。** 全文コピーは実装への参照に置き換えた | 1 箇所上げるたびに複数の文書を直すことになり、実際に Terraform の版 (`1.9.8` のまま) と playit のタグ (`0.15` のまま) と変数の個数 (`39` のまま) が古くなっていた。検出は `.claude/skills/doc-drift/` の検査に任せる |
+| 4-22 | 手順書の `02-terraform.md` を、ドラフトのコードを消したあと「どこを見ればよいか」の案内表だけのページとして残していた | **ページごと削除する。** 参照元（`00-overview.md` のドキュメント構成表、`07-exposure-options.md` の cloud-init への言及、wiki の `Runbook-Index.md`）は実体（`terraform/`、`terraform/cloud-init/mc-monitor.yaml.tftpl`、`02-architecture.md`、`08-parameters.md`）へ直接張り替えた | 中身が他文書へのリンクだけになり、独自の情報を持たなくなっていた。中継ページは参照を1段深くするうえ、リンク先が変わったときに直し忘れる箇所が増える。旧ドラフトの経緯はこの A1 に残るので情報は失われない |
+| 4-23 | 手順書 `docs/manual/` の章番号が `00`,`01`,`03`,`03b`,`04`〜`09` で、`02` が歯抜けのままだった（4-22 でその `02-terraform.md` を削除したため） | **`03`以降を1つずつ繰り上げる。** `03→02`, `03b→02b`, `04→03`, `05→04`, `06→05`, `07→06`, `08→07`, `09→08`。ファイル名・見出し・章内の相互参照・`00-overview.md` の構成表・他ファイルからの `docs/manual/` パス参照・この A1 自身の行番号付きリンクをすべて更新した | 歯抜けのままだと新しく読む人が「02はどこに行ったのか」で立ち止まる。`docs/spec/` 側 (00〜10, A1, A2) は今回の対象外（`02-terraform.md` を持たず歯抜けが生じていないため）で、たまたま同じ番号の同名ファイル（例: 両ディレクトリの `04-monitoring.md`）が存在するのは仕様書と手順書で独立した番号体系のため |
 
 ## 4b. セルフホスト構成 (`docker/`) からの取り込み
 

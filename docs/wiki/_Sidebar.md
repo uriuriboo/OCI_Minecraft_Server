@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD041 -->
+
 <!-- scripts/sync-wiki.py が生成しています。直接編集しないでください。 -->
 
 ### 仕様書

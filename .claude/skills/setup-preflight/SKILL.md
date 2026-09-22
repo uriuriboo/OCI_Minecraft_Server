@@ -73,7 +73,7 @@ ZeroTier の 2 つ）。それ以外はここで見る。
 | `home_ip_cidr` が現在のグローバルIPと違う（`--online`） | 初回の SSH フォールバックが自分に効かない |
 | `enable_home_ssh = false` | Tailscale 疎通を確認する前に閉じると**どこからも入れない** |
 | `monitor_thresholds` の部分指定 | オブジェクト型なので 4 キー揃わないと apply が落ちる |
-| `filesystem_name` が `/` のまま | ディスク使用率が取得できない。構築後に実測値へ直す（`docs/manual/03-post-setup.md` 手順8） |
+| `filesystem_name` が `/` のまま | ディスク使用率が取得できない。構築後に実測値へ直す（`docs/manual/02-post-setup.md` 手順8） |
 | R2 バケット | Terraform は作らない。Cloudflare 側で作成済みか確認する（OCI 側のバケットは作る） |
 
 ## 段階

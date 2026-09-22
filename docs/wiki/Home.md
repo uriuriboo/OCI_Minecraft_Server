@@ -6,7 +6,7 @@ Oracle Cloud Infrastructure の Always Free 枠で Minecraft (PaperMC) サーバ
 
 ## 構成の要点
 
-```
+```text
                     [インターネット]
                           │
                           │ すべてアウトバウンド接続のみ

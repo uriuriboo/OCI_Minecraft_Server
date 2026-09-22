@@ -1,4 +1,4 @@
-# 08. 公開方式の選択（playit.gg / Tailscale・ZeroTier）
+# 07. 公開方式の選択（playit.gg / Tailscale・ZeroTier）
 
 ## 前提
 
@@ -22,11 +22,11 @@ SSH は**どちらを選んでも Tailscale 経由**です。playit.gg は Minec
 
 ---
 
-# 方式A: playit.gg
+## 方式A: playit.gg
 
-## 通信の流れ
+### playit.gg の通信の流れ
 
-```
+```text
 [プレイヤー]
    │ 接続: xxx.playit.gg:12345
    ▼
@@ -41,7 +41,7 @@ SSH は**どちらを選んでも Tailscale 経由**です。playit.gg は Minec
 [PaperMC コンテナ]
 ```
 
-## docker-compose.yml
+### playit.gg の docker-compose.yml
 
 Minecraft 側のポート公開をやめ、playit エージェントを同一 Docker ネットワークに置きます。
 
@@ -95,7 +95,7 @@ networks:
 
 `network_mode: "host"` ではなく通常の bridge ネットワークを使います。playit エージェントはコンテナ名 `mc` で Minecraft に到達するため、ホスト側にポートを出す必要がありません。
 
-## cloud-init の差分
+### playit.gg の cloud-init 差分
 
 ```yaml
 runcmd:
@@ -113,11 +113,11 @@ runcmd:
 
 cloud-init は初回起動時に `mc` と `mc-router` のみ起動します（`playit_secret_key` が空だと `exit 1` を繰り返してクラッシュループするため）。`terraform.tfvars` にキーを設定して `terraform apply` した後、`ansible-playbook site.yml -t app`（または手動で `docker compose up -d`）を実行すると `playit` も起動します。
 
-`--advertise-tags=tag:mc-server` は、この方式でも SSH 制御(Tailscale経由)のために付与します。Minecraft本体のアクセス制御には使いません(playit.gg 側のホワイトリストで別途行います)。Auth Key 発行時にタグ権限を持たせておく必要がある点は方式Bと同じです(`03b-tailscale-acl.md` 参照)。
+`--advertise-tags=tag:mc-server` は、この方式でも SSH 制御(Tailscale経由)のために付与します。Minecraft本体のアクセス制御には使いません(playit.gg 側のホワイトリストで別途行います)。Auth Key 発行時にタグ権限を持たせておく必要がある点は方式Bと同じです(`02b-tailscale-acl.md` 参照)。
 
 `.env` は Terraform (`terraform.tfvars` の `playit_secret_key`) から生成される。playit-agent コンテナには `.env` をまるごと渡さず、`docker-compose.yml` の `environment: SECRET_KEY: "$${PLAYIT_SECRET_KEY}"` で必要な1つだけを渡す（RCON パスワードなどを playit コンテナに触れさせないため）。
 
-## セットアップ手順
+### セットアップ手順
 
 playit-agent のエントリポイントは `SECRET_KEY` が空だと認証URLを出さずに `exit 1` する。そのため、**先に playit.gg の docker 向けセットアップウィザードでキーを発行してから** VM に渡す。
 
@@ -134,7 +134,7 @@ docker compose up -d
 docker compose logs -f playit
 ```
 
-## トンネル作成
+### トンネル作成
 
 playit.gg ダッシュボード → Add Tunnel
 
@@ -145,7 +145,7 @@ playit.gg ダッシュボード → Add Tunnel
 
 割り当てられた `xxx.playit.gg` がプレイヤー向けアドレスです。
 
-## トンネルの死活監視
+### トンネルの死活監視
 
 `monitor.py` は RCON 直結なので、playit だけ落ちているケースを検知できません。mc-server 側で補います。
 
@@ -167,7 +167,7 @@ sudo chmod 700 /usr/local/bin/playit-check.sh
 (crontab -l 2>/dev/null; echo "*/10 * * * * /usr/local/bin/playit-check.sh") | crontab -
 ```
 
-## アクセス制御
+### アクセス制御
 
 playit.gg のアドレスは知っていれば誰でも接続を試せます。身内だけにするならホワイトリストを併用してください。
 
@@ -179,11 +179,11 @@ environment:
 
 ---
 
-# 方式B: Tailscale のみ
+## 方式B: Tailscale のみ
 
-## 通信の流れ
+### Tailscale の通信の流れ
 
-```
+```text
 [VM] ←── WireGuardトンネル ──→ [Tailscale コーディネーション]
                                         │
 [友人のPC] ←── WireGuardトンネル ───────┘
@@ -191,7 +191,7 @@ environment:
 
 VM は `100.x.x.x` という tailnet 専用アドレスしか持たず、参加者以外からは到達できません。インターネット上に存在しないアドレスなのでスキャンにも掛かりません。
 
-## docker-compose.yml
+### Tailscale の docker-compose.yml
 
 `network_mode: "host"` にして、ホストの iptables で制御します。
 
@@ -224,7 +224,7 @@ services:
       - ./data:/data
 ```
 
-## cloud-init の差分
+### Tailscale の cloud-init 差分
 
 ```yaml
 runcmd:
@@ -244,23 +244,23 @@ runcmd:
 
 `tailscale0` インターフェース経由の 25565 だけを ACCEPT し、他は DROP します。ルールの順序が重要で、ACCEPT が DROP より上位にある必要があります。
 
-`--advertise-tags=tag:mc-server` を付けることで、起動と同時に ACL 上の `tag:mc-server` が付与されます。ただし、この動作には Auth Key 発行時点で対応するタグの権限(`tagOwners`)が有効になっている必要があるため、Auth Key自体をタグ指定で発行しておくのが確実です(詳細は `03b-tailscale-acl.md` を参照)。
+`--advertise-tags=tag:mc-server` を付けることで、起動と同時に ACL 上の `tag:mc-server` が付与されます。ただし、この動作には Auth Key 発行時点で対応するタグの権限(`tagOwners`)が有効になっている必要があるため、Auth Key自体をタグ指定で発行しておくのが確実です(詳細は `02b-tailscale-acl.md` を参照)。
 
-mc-monitor 用の cloud-init(`02-terraform.md` に記載)にも同様の追記が必要です。
+mc-monitor 用の cloud-init([terraform/cloud-init/mc-monitor.yaml.tftpl](../../terraform/cloud-init/mc-monitor.yaml.tftpl))にも同様の追記が必要です。
 
 ```yaml
 - tailscale up --authkey=${tailscale_authkey} --ssh --hostname=mc-monitor --advertise-tags=tag:mc-monitor
 ```
 
-## 友人の招待
+### 友人の招待
 
 管理画面 → Settings → Users → Invite external users
 
 友人は自分の Google / Microsoft アカウントなどでログインして参加します。
 
-## ACL 設定
+### ACL 設定
 
-詳細な設定手順(タグ付きAuth Keyの発行、既存ノードへの再割り当て、友人招待後のグループ追記など)は `03b-tailscale-acl.md` を参照してください。以下は完成形のポリシーです。
+詳細な設定手順(タグ付きAuth Keyの発行、既存ノードへの再割り当て、友人招待後のグループ追記など)は `02b-tailscale-acl.md` を参照してください。以下は完成形のポリシーです。
 
 ```json
 {
@@ -301,15 +301,15 @@ mc-monitor 用の cloud-init(`02-terraform.md` に記載)にも同様の追記�
 
 友人は `group:mc-friends` に招待済みメールアドレスを追記することでアクセスできます。管理者(`tag:mc-admin`)は全ノードへ、mc-server/mc-monitor(`tag:mc-server`/`tag:mc-monitor`)は被アクセス側としてタグを持ちます。監視VM(mc-monitor)は友人からは一切見えません。
 
-## 接続方法
+### 接続方法
 
-```
+```text
 mc-server:25565
 ```
 
 MagicDNS が有効ならホスト名で繋がります。無効な場合は `tailscale ip -4` で確認した `100.x.x.x` を使います。
 
-## キー期限の無効化
+### キー期限の無効化
 
 管理画面 → Machines → 各ノード → Disable key expiry
 
@@ -317,7 +317,7 @@ Auth Key の期限（最長90日）とは別に、各ノードにも再認証期
 
 ---
 
-# 方式C: ZeroTier
+## 方式C: ZeroTier
 
 Tailscale とほぼ同じ仕組みですが、招待方法が異なります。
 
@@ -327,7 +327,7 @@ Tailscale とほぼ同じ仕組みですが、招待方法が異なります。
 | 友人のアカウント | 必要（Google等でOK） | 不要 |
 | 管理者の作業 | 招待送信 | 参加リクエストの承認 |
 
-## インストール
+### インストール
 
 ```yaml
 runcmd:
@@ -337,7 +337,7 @@ runcmd:
 
 管理画面（my.zerotier.com）で該当ノードを承認すると、`10.147.x.x` のような ZeroTier IP が割り当てられます。
 
-## iptables
+### iptables
 
 ```yaml
   - iptables -I INPUT -i zt+ -p tcp --dport 25565 -j ACCEPT
@@ -346,15 +346,15 @@ runcmd:
 
 ZeroTier のインターフェース名は `zt` で始まる可変名なので、`zt+` とワイルドカード指定します。
 
-## 選び方
+### 選び方
 
 友人にアカウント作成を強制したくないなら ZeroTier、招待作業を簡単にしたいなら Tailscale です。SSH を Tailscale で運用しているなら、ネットワークを二重に持たない意味で Tailscale に寄せる方が管理は楽になります。
 
 ---
 
-# 判断の目安
+## 判断の目安
 
-```
+```text
 遊ぶ人が流動的・技術に詳しくない
    → playit.gg + ホワイトリスト
 

@@ -89,7 +89,7 @@ variable "tailscale_authkey_server" {
   description = <<-EOT
     mc-server 用の Auth Key。`tag:mc-server` のタグ権限を付けて発行する。
     タグなしのキーで参加すると ACL の tag:mc-server が付かず、
-    SSH ポリシーが効かない (docs/manual/03b-tailscale-acl.md 参照)。
+    SSH ポリシーが効かない (docs/manual/02b-tailscale-acl.md 参照)。
   EOT
 }
 
@@ -268,7 +268,7 @@ variable "filesystem_name" {
     FilesystemUtilization の fileSystemName ディメンションの実測値。
     `/` ではなく `/dev/sda1` のようなデバイス名のことがある。
     構築後にメトリクス・エクスプローラで確認して修正する
-    (docs/manual/03-post-setup.md 手順8)。
+    (docs/manual/02-post-setup.md 手順8)。
   EOT
 }
 

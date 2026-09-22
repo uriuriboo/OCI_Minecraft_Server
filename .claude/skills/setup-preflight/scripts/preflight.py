@@ -569,7 +569,7 @@ def check_semantics(merged: dict[str, Value], online: bool) -> None:
             "情報",
             sec,
             "enable_home_ssh = false。Tailscale で両 VM に入れることを確認してから閉じる "
-            "(docs/manual/03-post-setup.md 手順2)。未確認で閉じるとどこからも入れない",
+            "(docs/manual/02-post-setup.md 手順2)。未確認で閉じるとどこからも入れない",
         )
 
     # --- Tailscale の 2 本のキー
@@ -629,7 +629,7 @@ def check_semantics(merged: dict[str, Value], online: bool) -> None:
             "情報",
             sec,
             "filesystem_name が既定の / のまま。構築後にメトリクス・エクスプローラで実測値を確認して直す "
-            "(/dev/sda1 のことがある。docs/manual/03-post-setup.md 手順8)",
+            "(/dev/sda1 のことがある。docs/manual/02-post-setup.md 手順8)",
         )
 
     # --- バックアップ

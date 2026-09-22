@@ -52,7 +52,7 @@ git push
 | `[04-monitoring.md](04-monitoring.md)` | `[04. 監視](Spec-04-monitoring)` |
 | `[06-operations.md](06-operations.md) の変更管理` | ラベルはそのまま、リンク先のみ変換 |
 | `[terraform/variables.tf](../../terraform/variables.tf)` | `../blob/main/terraform/variables.tf` |
-| `[docs/manual/07-operations.md](../manual/07-operations.md)` | 同様にリポジトリ上のファイルへ |
+| `[docs/manual/06-operations.md](../manual/06-operations.md)` | 同様にリポジトリ上のファイルへ |
 
 リポジトリへのリンクの基点は `sync-wiki.py` の `REPO_BLOB` 定数 (既定 `../blob/main`) です。既定ブランチが `main` 以外の場合はここを変えてください。
 

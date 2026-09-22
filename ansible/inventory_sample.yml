@@ -3,7 +3,7 @@
 # ホスト名は Tailscale の MagicDNS 名。事前に
 #   ssh ubuntu@mc-server
 #   ssh ubuntu@mc-monitor
-# が通ることを確認しておく (docs/manual/03-post-setup.md 手順2)。
+# が通ることを確認しておく (docs/manual/02-post-setup.md 手順2)。
 #
 # MagicDNS を使っていない場合は `tailscale ip -4` で確認した
 # 100.x.x.x を ansible_host に書く。

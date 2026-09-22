@@ -36,7 +36,7 @@
 
 ### NSG ルール
 
-**nsg-minecraft**
+#### nsg-minecraft
 
 | 方向 | プロトコル | ポート | 送信元 | 条件 | 目的 |
 | --- | --- | --- | --- | --- | --- |
@@ -44,7 +44,7 @@
 | INGRESS | TCP | 22 | `home_ip_cidr` | `enable_home_ssh=true` | 初回構築のフォールバック |
 | EGRESS | all | all | `0.0.0.0/0` | 常時 | トンネル・更新・バックアップ |
 
-**nsg-monitor**
+#### nsg-monitor
 
 | 方向 | プロトコル | ポート | 送信元 | 条件 | 目的 |
 | --- | --- | --- | --- | --- | --- |
