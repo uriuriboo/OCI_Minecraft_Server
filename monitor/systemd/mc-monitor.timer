@@ -1,0 +1,14 @@
+[Unit]
+Description=Run mc-monitor every 5 minutes
+
+[Timer]
+# 起動から初回実行までの待ち時間。cloud-init 完了と Cloud Agent の
+# メトリクス反映(5〜10分)を待つ意味もある。
+OnBootSec=5min
+# 前回実行から次回までの間隔
+OnUnitActiveSec=5min
+AccuracySec=30s
+Unit=mc-monitor.service
+
+[Install]
+WantedBy=timers.target

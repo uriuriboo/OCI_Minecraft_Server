@@ -1,0 +1,18 @@
+[Unit]
+Description=Minecraft server monitor (one-shot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu
+EnvironmentFile=/home/ubuntu/.env
+ExecStart=/home/ubuntu/venv/bin/python3 /home/ubuntu/monitor.py
+TimeoutStartSec=120
+
+# 1回の実行が終わるとプロセスは終了する。常駐しないため
+# `systemctl status mc-monitor.service` が inactive (dead) なのは正常。
+StandardOutput=journal
+StandardError=journal

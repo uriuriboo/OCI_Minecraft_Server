@@ -1,0 +1,57 @@
+# ---------- 秘密 ----------
+# 中身のサンプルは terraform/terraform.tfvars_sample / env/*_sample にある
+terraform.tfvars
+*.auto.tfvars
+.env
+rclone.conf
+
+# Terraform が local_file でレンダリング結果を書き出す先。
+# RCON パスワードや Webhook URL を含むため丸ごと無視する。
+ansible/files/
+
+# ansible/inventory_sample.yml をコピーして作る実ファイル
+ansible/inventory.yml
+
+# ---------- Terraform ----------
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+tfplan
+*.tfplan
+
+# .terraform.lock.hcl はコミットする (プロバイダのバージョンを固定するため)
+
+# scripts/render-check の書き出し先とローカル state。検査用の一時成果物。
+scripts/render-check/out/
+
+# ---------- Ansible ----------
+*.retry
+.ansible/
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# uv.lock はコミットしない。
+# VM へ配る依存の正は monitor/requirements.txt (uv pip compile の生成物) で、
+# uv.lock は同じ依存グループを全プラットフォーム分・別の解決結果で二重に
+# 固定してしまう。同じものを2箇所で管理しないため片方に寄せる。
+# scripts/ の補助スクリプトは標準ライブラリだけで動くので lock を必要としない。
+uv.lock
+
+# ---------- OS / エディタ ----------
+Thumbs.db
+.DS_Store
+*.swp
+
+# ---------- その他 ----------
+LICENSE.txt
+
+# 作業中のメモ・検討事項。個人の作業ログなのでコミット対象にしない。
+todo.md

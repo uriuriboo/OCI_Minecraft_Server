@@ -1,0 +1,21 @@
+# このリポジトリのファイルはほぼすべて Linux VM 上で実行・解釈される。
+# core.autocrlf=true の環境でチェックアウトすると CRLF になり、次のように壊れる。
+#
+#   backup.sh         行継続の `\` が `\r` をエスケープしてしまい構文エラー
+#   playit-check.sh   同様
+#   *.env             値の末尾に \r が付き、RCON 認証などが謎の失敗をする
+#   *.service/.timer  systemd が ExecStart の値を誤読する
+#   monitor.py        shebang が `python3\r` になり直接実行できない
+#
+# cloud-init の write_files はテンプレートの中身をそのまま VM に埋め込むため、
+# 手元の改行コードがそのまま本番の不具合になる。作業環境に依存させない。
+* text=auto eol=lf
+
+# 改行を含まない、または変換してはいけないもの
+*.png binary
+*.jpg binary
+*.gz binary
+*.tgz binary
+*.zip binary
+terraform.tfstate binary
+terraform.tfstate.backup binary

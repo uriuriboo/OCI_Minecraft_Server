@@ -1,0 +1,20 @@
+#!/bin/bash
+# /usr/local/bin/playit-check.sh
+# Terraform が生成している。cron から10分ごとに実行される。
+#
+# monitor.py は RCON に直結しているため、Minecraft 本体が生きていて
+# 経路だけ落ちている状態を検知できない。その穴を mc-server 側で埋める。
+#
+# playit だけでなく mc-router も見る。mc-router が落ちるとトンネルが生きていても
+# プレイヤーは繋がらず、RCON は mc に直接届くので monitor.py は正常と判定する。
+set -euo pipefail
+
+WEBHOOK="${discord_webhook_url}"
+
+for name in playit mc-router; do
+  if [ "$(docker inspect -f '{{.State.Running}}' "$${name}" 2>/dev/null)" != "true" ]; then
+    curl -fsS -H "Content-Type: application/json" \
+      -d "{\"content\":\"🚨 $${name} が停止しています (mc-server)\"}" \
+      "$${WEBHOOK}" >/dev/null
+  fi
+done
