@@ -105,22 +105,22 @@ locals {
   # ---------- シェルスクリプト ----------
 
   backup_sh = templatefile("${var.proj}/terraform/templates/backup.sh.tftpl", {
-    r2_bucket          = "minecraft-backup"
-    remote_keep_days   = 30
-    keep_generations   = 7
-    enable_oci_backup  = true
-    oci_namespace      = "dummyns"
-    backup_bucket_name = "minecraft-backup"
+    r2_bucket           = "minecraft-backup"
+    r2_keep_generations = 5
+    keep_generations    = 7
+    enable_oci_backup   = true
+    oci_namespace       = "dummyns"
+    backup_bucket_name  = "minecraft-backup"
   })
 
   # OCI バックアップ無効・世代整理なしの分岐も出す
   backup_sh_min = templatefile("${var.proj}/terraform/templates/backup.sh.tftpl", {
-    r2_bucket          = "minecraft-backup"
-    remote_keep_days   = 0
-    keep_generations   = 0
-    enable_oci_backup  = false
-    oci_namespace      = "dummyns"
-    backup_bucket_name = "minecraft-backup"
+    r2_bucket           = "minecraft-backup"
+    r2_keep_generations = 0
+    keep_generations    = 0
+    enable_oci_backup   = false
+    oci_namespace       = "dummyns"
+    backup_bucket_name  = "minecraft-backup"
   })
 
   playit_check = templatefile("${var.proj}/terraform/templates/playit-check.sh.tftpl", {

@@ -41,12 +41,12 @@ locals {
   })
 
   raw_backup_sh = templatefile("${path.module}/templates/backup.sh.tftpl", {
-    r2_bucket          = var.r2_bucket
-    remote_keep_days   = var.backup_remote_keep_days
-    keep_generations   = var.backup_keep_generations
-    enable_oci_backup  = var.enable_oci_backup
-    oci_namespace      = data.oci_objectstorage_namespace.current.namespace
-    backup_bucket_name = var.backup_bucket_name
+    r2_bucket           = var.r2_bucket
+    r2_keep_generations = var.backup_r2_keep_generations
+    keep_generations    = var.backup_keep_generations
+    enable_oci_backup   = var.enable_oci_backup
+    oci_namespace       = data.oci_objectstorage_namespace.current.namespace
+    backup_bucket_name  = var.backup_bucket_name
   })
 
   raw_playit_check = templatefile("${path.module}/templates/playit-check.sh.tftpl", {

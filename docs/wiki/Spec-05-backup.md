@@ -25,7 +25,7 @@ mc-server:/home/ubuntu/minecraft/data
 | | ローカル (VM) | Cloudflare R2 | OCI Object Storage |
 | --- | --- | --- | --- |
 | 役割 | 直近の即時復元 | 一次コピー | 二次コピー |
-| 保持 | 7 世代 (`backup_keep_generations`) | 30 日 (`backup_remote_keep_days`) | 30 日 (ライフサイクルポリシー) |
+| 保持 | 7 世代 (`backup_keep_generations`) | 14 世代 (`backup_r2_keep_generations`) | 30 日 (`backup_remote_keep_days`、ライフサイクルポリシー) |
 | 無料枠 | ブートボリューム 100GB の一部 | 10GB / 月100万リクエスト | 20GB / 月5万リクエスト |
 | 認証 | - | S3 互換キー (`rclone.conf`) | インスタンスプリンシパル |
 | 事業者 | OCI | Cloudflare | OCI |
@@ -44,10 +44,10 @@ OCI 側を併設するのは、R2 の認証情報が VM 上の `rclone.conf` に
 
 | 保存先 | リモートの世代管理 |
 | --- | --- |
-| R2 | `backup.sh` の `rclone delete --min-age 30d` |
+| R2 | `backup.sh` が `rclone lsf` で世代を数えて直近 N 世代だけ残す |
 | OCI | `terraform/storage.tf` のライフサイクルポリシー (宣言的) |
 
-OCI 側を Terraform のライフサイクルポリシーにしているのは、**`backup.sh` が失敗しても保持期間が守られる**ためである。
+R2 を世代数で管理しているのは、バックアップを手動実行しているため実行頻度が一定せず、日数指定だと「取った本数」と「消える基準」がずれるからである。OCI 側は逆に Terraform のライフサイクルポリシー (日数指定) のままにしている。**`backup.sh` が失敗しても保持期間が守られる**ためである。
 
 ## 実行
 

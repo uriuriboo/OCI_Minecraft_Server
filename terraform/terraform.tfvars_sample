@@ -151,8 +151,11 @@ backup_bucket_name = "minecraft-backup"
 # VM 上に残す世代数
 backup_keep_generations = 7
 
-# クラウド側の保持日数。0 で無期限
+# OCI Object Storage の保持日数。0 で無期限
 backup_remote_keep_days = 30
+
+# R2 に保持する世代数。0 で無制限
+backup_r2_keep_generations = 14
 
 # ============================================================
 # ネットワーク (通常は変更不要)

@@ -347,8 +347,17 @@ variable "backup_remote_keep_days" {
   type        = number
   default     = 30
   description = <<-EOT
-    クラウド側 (R2 / OCI) の保持日数。0 で無期限。
-    R2 は backup.sh の `rclone delete --min-age`、
-    OCI は storage.tf のライフサイクルポリシーがそれぞれ削除する。
+    OCI Object Storage の保持日数。0 で無期限。
+    storage.tf のライフサイクルポリシーが削除する。
+  EOT
+}
+
+variable "backup_r2_keep_generations" {
+  type        = number
+  default     = 14
+  description = <<-EOT
+    R2 に保持する世代数。0 で無制限。
+    手動バックアップは実行頻度が一定しないため、日数ではなく本数で管理する。
+    backup.sh が `rclone lsf` で世代を数えて削除する。
   EOT
 }

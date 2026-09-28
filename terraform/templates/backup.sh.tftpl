@@ -13,6 +13,7 @@ set -euo pipefail
 
 BACKUP_DIR=/home/ubuntu/minecraft/backups
 KEEP_GENERATIONS=${keep_generations}
+KEEP_R2_GENERATIONS=${r2_keep_generations}
 
 # shellcheck disable=SC1091
 source /home/ubuntu/minecraft/.env
@@ -50,15 +51,23 @@ log "snapshot done"
 # ---------- 2. Cloudflare R2 へ ----------
 # sync ではなく copy を使う。ローカルの世代削除が R2 側まで波及して
 # 「手元のバグでクラウドのバックアップが消える」事故を防ぐため。
-# R2 側の世代管理は下の --min-age による削除で行う。
+# R2 側の世代管理は下のブロックで行う。
 rclone copy "$${BACKUP_DIR}" "r2:${r2_bucket}" --progress
 log "uploaded to R2 (${r2_bucket})"
-%{~ if remote_keep_days > 0 }
+%{~ if r2_keep_generations > 0 }
 
-# R2 の古い世代を削除。無料枠 10GB に収める。
-rclone delete "r2:${r2_bucket}" --min-age ${remote_keep_days}d
+# R2 の古い世代を削除。手動バックアップは実行頻度が一定しないため、
+# 日数ではなく直近 N 世代で管理する (ローカルの世代整理と同じ考え方)。
+rclone lsf "r2:${r2_bucket}" --files-only --format "tp" \
+  | sort -r \
+  | tail -n "+$((KEEP_R2_GENERATIONS + 1))" \
+  | cut -d';' -f2- \
+  | while read -r old; do
+      log "removing R2 generation: $${old}"
+      rclone deletefile "r2:${r2_bucket}/$${old}"
+    done
 rclone rmdirs "r2:${r2_bucket}" --leave-root || true
-log "pruned R2 objects older than ${remote_keep_days}d"
+log "pruned R2 to last $${KEEP_R2_GENERATIONS} generations"
 %{~ endif }
 %{~ if enable_oci_backup }
 

@@ -110,7 +110,8 @@
 | `enable_oci_backup` | `true` | | OCI Object Storage への二次コピー |
 | `backup_bucket_name` | `minecraft-backup` | | Terraform が作成する |
 | `backup_keep_generations` | `7` | | VM 上に残す世代数。0 で無制限 |
-| `backup_remote_keep_days` | `30` | | クラウド側の保持日数。0 で無期限 |
+| `backup_remote_keep_days` | `30` | | OCI Object Storage の保持日数。0 で無期限 |
+| `backup_r2_keep_generations` | `14` | | R2 に保持する世代数。0 で無制限 |
 
 ## `.env` として VM に配置される変数
 
