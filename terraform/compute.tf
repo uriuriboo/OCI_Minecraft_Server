@@ -133,8 +133,7 @@ resource "oci_core_instance" "mc_monitor" {
     }))
   }
 
-  # 監視VM自身のメトリクスも取る。docs/manual/04-dashboard.md の
-  # 「mc-server と mc-monitor の比較表示」に必要。
+  # 監視VM自身のメトリクスも取る。mc-server と mc-monitor の比較表示に必要。
   agent_config {
     plugins_config {
       name          = "Compute Instance Monitoring"

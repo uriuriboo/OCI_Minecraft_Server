@@ -4,7 +4,6 @@
 # ここは「初回構築で確定し、以後変わらないもの」だけを置く。
 # user_data の変更はインスタンス置換 (= ブートボリューム破棄 = ワールド消失) を
 # 引き起こすため、稼働後に変えたいものは Ansible 側 (site.yml の app タグ) で扱う。
-# 境界の判断基準は docs/spec/02-architecture.md を参照。
 #
 # exposure_mode = ${exposure_mode}
 package_update: true
@@ -124,7 +123,7 @@ runcmd:
   # 初回は mc と mc-router のみ。playit_secret_key が空だと playit コンテナは
   # exit 1 を繰り返す (restart: unless-stopped でクラッシュループする)ため、
   # ここでは起動しない。キーを設定して terraform apply → Ansible -t app した
-  # ときに `docker compose up -d` で立ち上がる (docs/spec/06-operations.md)。
+  # ときに `docker compose up -d` で立ち上がる。
   - su - ubuntu -c 'cd /home/ubuntu/minecraft && docker compose up -d mc mc-router'
 %{ else ~}
   - su - ubuntu -c 'cd /home/ubuntu/minecraft && docker compose up -d'

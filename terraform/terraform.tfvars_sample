@@ -2,8 +2,7 @@
 #
 #   cp terraform.tfvars_sample terraform.tfvars
 #
-# terraform.tfvars は .gitignore 済み。値の入手元は docs/spec/08-parameters.md、
-# 取得手順は docs/manual/01-prerequisites.md にある。
+# terraform.tfvars は .gitignore 済み。
 
 # ============================================================
 # 必須: OCI テナンシー
@@ -123,7 +122,7 @@ mc_router_rate_limit = 5
 # 監視
 # ============================================================
 
-# docs/manual/03-post-setup.md 手順8 で確認した実測値に直す。
+# 構築後にメトリクス・エクスプローラで確認した実測値に直す。
 # `/` ではなく `/dev/sda1` のようなデバイス名のことがある。
 filesystem_name = "/"
 

@@ -1,7 +1,7 @@
 # mc-server の /home/ubuntu/.config/rclone/rclone.conf のサンプル
 #
 # 実体は Terraform が terraform/templates/rclone.conf.tftpl から生成し、
-# cloud-init で配置する。docs/manual/06-backup.md の `rclone config` 対話を
+# cloud-init で配置する。`rclone config` 対話を
 # 非対話の設定ファイルに置き換えたもの。
 #
 # 疎通確認:

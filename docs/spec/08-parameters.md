@@ -155,6 +155,7 @@ monitor.py はこれ以外に `STATE_FILE` と `CUSTOM_NAMESPACE` も任意で�
 | `backup_bucket` | `<namespace>/<bucket>` |
 | `exposure_mode` | 現在の公開方式 |
 | `minecraft_connect_address` | プレイヤーに渡す接続先の案内 |
+| `game_log_search_hint` | OCI Console でゲームログを検索する場所。`enable_game_log_collection=false` なら null |
 | `dashboard_mql` | 各ウィジェット用の MQL (OCID 埋め込み済み) |
 
 ## 設定できないもの (ハードコード)

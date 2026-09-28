@@ -6,8 +6,7 @@
 #   ~/restore.sh                    # R2 から一覧を取得して選ばせる
 #   ~/restore.sh world-2026-09-21-0300.tgz
 #
-# バックアップは復元できて初めて機能する。構築直後に一度通しておくこと
-# (docs/spec/09-verification.md の受入試験項目)。
+# バックアップは復元できて初めて機能する。構築直後に一度通しておくこと。
 set -euo pipefail
 
 MC_DIR=/home/ubuntu/minecraft

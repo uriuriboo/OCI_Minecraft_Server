@@ -4,7 +4,7 @@
 //   管理画面 → Access Controls (https://login.tailscale.com/admin/acls)
 //   を開き、このファイルの内容で置き換えて保存する。保存すると即座に反映される。
 //
-// 設計方針 (詳細は docs/spec/03-network-security.md):
+// 設計方針:
 //   tag:mc-admin      自分の操作端末。全ノードへ全ポート + SSH
 //   tag:mc-server     Minecraft サーバー (被アクセス側)
 //   tag:mc-monitor    監視サーバー (被アクセス側)

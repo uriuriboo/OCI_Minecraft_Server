@@ -48,7 +48,6 @@ output "game_log_search_hint" {
 }
 
 # dashboards/minecraft-dashboard.json の OCID プレースホルダをこの値で置換する。
-# 置換手順は docs/manual/04-dashboard.md と docs/spec/04-monitoring.md にある。
 output "dashboard_mql" {
   description = "OCI Dashboards のウィジェットに貼る MQL"
   value = {

@@ -9,7 +9,7 @@
 #
 # 配送するファイルは Terraform が render.tf で ansible/files/ に書き出している。
 # ここに Jinja2 テンプレートを置かないのは、同じ docker-compose.yml を
-# 2箇所で管理しないため (docs/spec/02-architecture.md)。
+# 2箇所で管理しないため。
 #
 #   cd terraform && terraform apply        # ansible/files/ を更新
 #   cd ../ansible && ansible-playbook site.yml -t app

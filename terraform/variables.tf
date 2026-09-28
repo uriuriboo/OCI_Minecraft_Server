@@ -1,5 +1,3 @@
-# 全変数の一覧・入手元・秘匿区分は docs/spec/08-parameters.md にまとめてある。
-
 # ---------- OCI テナンシー ----------
 
 variable "region" {
@@ -89,7 +87,7 @@ variable "tailscale_authkey_server" {
   description = <<-EOT
     mc-server 用の Auth Key。`tag:mc-server` のタグ権限を付けて発行する。
     タグなしのキーで参加すると ACL の tag:mc-server が付かず、
-    SSH ポリシーが効かない (docs/manual/02b-tailscale-acl.md 参照)。
+    SSH ポリシーが効かない。
   EOT
 }
 
@@ -135,7 +133,6 @@ variable "exposure_mode" {
       playit    : playit.gg のトンネル経由。友人側の準備が不要
       tailscale : tailnet 内のみ。tailscale0 経由の 25565 だけ許可
       zerotier  : ZeroTier ネットワーク内のみ。zt+ 経由の 25565 だけ許可
-    比較と選定理由は docs/spec/02-architecture.md を参照。
   EOT
 
   validation {
@@ -193,8 +190,7 @@ variable "mc_whitelist" {
   default     = []
   description = <<-EOT
     許可する Minecraft ID のリスト。空だとホワイトリストを無効化する。
-    Tailscale ACL はIPしか見ないため、MCID単位の制御はここが担う
-    (docs/spec/03-network-security.md 参照)。
+    Tailscale ACL はIPしか見ないため、MCID単位の制御はここが担う。
   EOT
 }
 
@@ -210,7 +206,6 @@ variable "mc_plugins" {
   description = <<-EOT
     導入するプラグインの SpigotMC リソースID (SPIGET_RESOURCES)。
     既定は CoreProtect(8631) と LuckPerms(28140)。
-    IDとプラグインの対応は docs/spec/07-tech-stack.md にある。
   EOT
 }
 
@@ -241,7 +236,7 @@ variable "mc_router_auto_scale" {
 
     既定を false にしているのは、停止中は次の2つが成立しなくなるため。
       - monitor.py は RCON 直結なので「意図的な停止」と「落ちた」を区別できず、
-        Discord に誤報を出す (docs/spec/04-monitoring.md)
+        Discord に誤報を出す
       - backup.sh は `--network container:mc` で RCON に繋ぐため実行できない
         (起動していなければ止まるようガードを入れてある)
     Always Free の VM は止めても課金が減らないため、有効化の利点はメモリの解放だけ。
@@ -267,8 +262,7 @@ variable "filesystem_name" {
   description = <<-EOT
     FilesystemUtilization の fileSystemName ディメンションの実測値。
     `/` ではなく `/dev/sda1` のようなデバイス名のことがある。
-    構築後にメトリクス・エクスプローラで確認して修正する
-    (docs/manual/02-post-setup.md 手順8)。
+    構築後にメトリクス・エクスプローラで確認して修正する。
   EOT
 }
 
@@ -326,7 +320,6 @@ variable "enable_oci_backup" {
   description = <<-EOT
     R2 に加えて OCI Object Storage にも同じバックアップを置く。
     事業者を分けた一次コピーが R2、同一事業者内の二次コピーが OCI。
-    設計上の位置づけは docs/spec/05-backup.md を参照。
   EOT
 }
 
@@ -336,7 +329,6 @@ variable "enable_game_log_collection" {
   description = <<-EOT
     OCI Logging + Unified Monitoring Agent で PaperMC のログ
     (data/logs/latest.log)を収集し、join/leave 等を検索可能にする。
-    設計上の位置づけは docs/spec/04-monitoring.md を参照。
   EOT
 }
 

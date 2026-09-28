@@ -1,7 +1,6 @@
 # 25565 の ingress ルールはどの exposure_mode でも作らない。
 # playit / Tailscale / ZeroTier はいずれも VM 側から張ったアウトバウンド接続を
 # 使い回す方式なので、受信の口を開ける必要がない。
-# 設計の根拠は docs/spec/03-network-security.md を参照。
 
 resource "oci_core_vcn" "main" {
   compartment_id = var.compartment_ocid

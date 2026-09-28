@@ -4,7 +4,7 @@ data "oci_objectstorage_namespace" "current" {
 
 # R2 に加えた二次コピーの置き場。
 # 一次を別事業者 (R2) に置いているのは、アカウント停止やリージョン障害で
-# サーバーとバックアップを同時に失わないため (docs/spec/05-backup.md)。
+# サーバーとバックアップを同時に失わないため。
 resource "oci_objectstorage_bucket" "backup" {
   count          = var.enable_oci_backup ? 1 : 0
   compartment_id = var.compartment_ocid

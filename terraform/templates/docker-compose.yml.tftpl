@@ -17,7 +17,7 @@ services:
     security_opt:
       - no-new-privileges:true
     # 上限を付けないと journald ではなく json ファイルが無制限に育ち、
-    # ディスク使用率 80% のアラート (docs/spec/04-monitoring.md) を静かに押し上げる。
+    # ディスク使用率 80% のアラートを静かに押し上げる。
     logging:
       driver: json-file
       options:
@@ -77,7 +77,7 @@ services:
       OPS: "${join(",", ops)}"
 %{ endif ~}
 %{ if length(plugins) > 0 ~}
-      # SpigotMC のリソースID。IDと名前の対応は docs/spec/07-tech-stack.md
+      # SpigotMC のリソースID。
       SPIGET_RESOURCES: "${join(",", plugins)}"
 %{ endif ~}
     volumes:
@@ -87,7 +87,7 @@ services:
   # プレイヤー → playit.gg → mc-router:25565 → mc:25565
   #
   # playit.gg のトンネルは Local address を "mc-router:25565" に設定する
-  # ("mc:25565" ではない。docs/spec/09-verification.md)。
+  # ("mc:25565" ではない)。
   # 25565 はホストに出さない。playit が同じ bridge にいるので公開の必要がなく、
   # Docker の DNAT を増やさずに済む。
   mc-router:
@@ -138,7 +138,7 @@ services:
     container_name: playit
     restart: unless-stopped
     # エントリポイントが読むのは SECRET_KEY だけで、空だと exit 1 で即終了する。
-    # キーは playit.gg のダッシュボードで先に払い出しておく (docs/spec/06-operations.md)。
+    # キーは playit.gg のダッシュボードで先に払い出しておく。
     # .env をまるごと渡すと RCON パスワードや Discord Webhook URL まで
     # このコンテナに入ってしまうため、必要な1つだけを明示的に渡す。
     environment:

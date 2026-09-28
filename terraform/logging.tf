@@ -19,7 +19,7 @@ resource "oci_logging_log" "minecraft_game" {
   log_type     = "CUSTOM"
 
   # 荒らし調査等で必要になったときに遡れれば十分なので30日で固定する。
-  # 専用変数は作らない (docs/spec/05-backup.md の backup_remote_keep_days とは別軸)。
+  # 専用変数は作らない (backup_remote_keep_days とは別軸)。
   retention_duration = 30
 }
 

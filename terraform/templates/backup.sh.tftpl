@@ -6,7 +6,7 @@
 # itzg/mc-backup が RCON 経由で save-off → save-all → バックアップ → save-on を
 # 内部的に行うため、セーブ制御を自前で書く必要がない。
 #
-# 保存先は2段構成。設計上の位置づけは docs/spec/05-backup.md を参照。
+# 保存先は2段構成。
 #   1. Cloudflare R2      … 別事業者への一次コピー
 #   2. OCI Object Storage … 同一事業者内の二次コピー
 set -euo pipefail
